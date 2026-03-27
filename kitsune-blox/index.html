@@ -1,0 +1,2002 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🦊 Kitsune Fruit - Blox Fruits 🦊</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0015;
+    overflow: hidden;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    cursor: none;
+  }
+
+  canvas {
+    display: block;
+  }
+
+  #ui {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    padding: 15px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .stat-box {
+    background: linear-gradient(135deg, rgba(120, 0, 255, 0.7), rgba(0, 200, 255, 0.5));
+    border: 2px solid #00e5ff;
+    border-radius: 15px;
+    padding: 8px 20px;
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+    text-shadow: 0 0 10px #00e5ff, 0 0 20px #7b2fff;
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
+    letter-spacing: 1px;
+  }
+
+  #title-screen {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at center, #1a0030 0%, #0a0015 70%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    cursor: pointer;
+  }
+
+  #title-screen h1 {
+    font-size: 52px;
+    color: #fff;
+    text-shadow: 0 0 30px #7b2fff, 0 0 60px #00e5ff, 0 0 100px #7b2fff;
+    margin-bottom: 10px;
+    animation: titlePulse 2s ease-in-out infinite;
+    text-align: center;
+  }
+
+  #title-screen h2 {
+    font-size: 28px;
+    color: #00e5ff;
+    text-shadow: 0 0 20px #00e5ff;
+    margin-bottom: 40px;
+  }
+
+  #title-screen .start-btn {
+    font-size: 26px;
+    color: #fff;
+    background: linear-gradient(135deg, #7b2fff, #00b4d8);
+    border: 3px solid #00e5ff;
+    border-radius: 50px;
+    padding: 15px 50px;
+    cursor: pointer;
+    animation: btnPulse 1.5s ease-in-out infinite;
+    text-shadow: 0 0 10px rgba(255,255,255,0.5);
+    box-shadow: 0 0 30px rgba(123, 47, 255, 0.5), 0 0 60px rgba(0, 229, 255, 0.3);
+    letter-spacing: 2px;
+    font-weight: bold;
+    pointer-events: all;
+  }
+
+  .instructions {
+    color: rgba(255,255,255,0.6);
+    font-size: 16px;
+    margin-top: 25px;
+    text-align: center;
+    line-height: 1.8;
+  }
+
+  @keyframes titlePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  @keyframes btnPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(123,47,255,0.5); }
+    50% { transform: scale(1.08); box-shadow: 0 0 50px rgba(123,47,255,0.8), 0 0 80px rgba(0,229,255,0.5); }
+  }
+
+  #combo-display {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 80px;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 0 30px #ff6600, 0 0 60px #ff0000;
+    z-index: 50;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  #powerup-msg {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 24px;
+    font-weight: bold;
+    color: #ffcc00;
+    text-shadow: 0 0 20px #ff6600;
+    z-index: 50;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  #level-up {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 60px;
+    font-weight: 900;
+    color: #ffcc00;
+    text-shadow: 0 0 40px #ff6600, 0 0 80px #ff0000;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0;
+  }
+</style>
+</head>
+<body>
+
+<div id="title-screen">
+  <h1>🦊 KITSUNE FRUIT 🦊</h1>
+  <h2>⚡ Blox Fruits ⚡</h2>
+  <button class="start-btn" onclick="startGame()">🎮 JUGAR 🎮</button>
+  <div class="instructions">
+    🖱️ Mueve el mouse para controlar la Kitsune<br>
+    🔥 Click para atacar con tu poder actual<br>
+    🍎 Come frutas Blox para obtener sus poderes!<br>
+    ❄️🔥🌑✨🟣🐉🐆🟡 Cada fruta = ataque unico!<br>
+    💜 Espacio = SUPER ATAQUE KITSUNE (barra llena)
+  </div>
+</div>
+
+<div id="ui">
+  <div class="stat-box">⭐ Puntos: <span id="score">0</span></div>
+  <div class="stat-box">🔥 Combo: <span id="combo">x1</span></div>
+  <div class="stat-box" id="fruit-box">🦊 Kitsune</div>
+  <div class="stat-box">💜 Power: <span id="power">0</span>%</div>
+  <div class="stat-box">❤️ Vida: <span id="health">★★★★★</span></div>
+</div>
+
+<div id="combo-display"></div>
+<div id="powerup-msg"></div>
+<div id="level-up"></div>
+
+<canvas id="game"></canvas>
+
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+// Game state
+let gameStarted = false;
+let score = 0;
+let combo = 1;
+let comboTimer = 0;
+let power = 0;
+let health = 5;
+let level = 1;
+let screenShake = 0;
+let mouseX = canvas.width / 2;
+let mouseY = canvas.height / 2;
+let particles = [];
+let fireballs = [];
+let enemies = [];
+let fruits = [];
+let explosions = [];
+let stars = [];
+let tailFlames = [];
+let dashTrail = [];
+let superAttackActive = false;
+let superAttackTimer = 0;
+let kitsuneAngle = 0;
+let kitsuneFrame = 0;
+let spawnTimer = 0;
+let fruitSpawnTimer = 0;
+let difficultyTimer = 0;
+let enemySpeed = 0.5;
+let bgHue = 260;
+
+// Create stars
+for (let i = 0; i < 200; i++) {
+  stars.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    size: Math.random() * 2 + 0.5,
+    twinkle: Math.random() * Math.PI * 2,
+    speed: Math.random() * 0.02 + 0.01
+  });
+}
+
+// Kitsune object
+const kitsune = {
+  x: canvas.width / 2,
+  y: canvas.height / 2,
+  targetX: canvas.width / 2,
+  targetY: canvas.height / 2,
+  size: 40,
+  tailPhase: 0,
+  numTails: 3,
+  eyeGlow: 0,
+  breathPhase: 0
+};
+
+// Mouse tracking
+canvas.addEventListener('mousemove', (e) => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+});
+
+document.addEventListener('mousemove', (e) => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+});
+
+// Shooting
+canvas.addEventListener('click', (e) => {
+  if (!gameStarted) return;
+  shootFireball(e.clientX, e.clientY);
+});
+
+// Super attack
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space' && gameStarted && power >= 100) {
+    e.preventDefault();
+    activateSuperAttack();
+  }
+});
+
+function shootFireball(tx, ty) {
+  const cf = currentFruit;
+
+  // Auto-aim: find nearest enemy and shoot at it
+  let targetX = tx, targetY = ty;
+  if (enemies.length > 0) {
+    let nearest = null;
+    let nearestDist = Infinity;
+    enemies.forEach(e => {
+      const dx = e.x - kitsune.x;
+      const dy = e.y - kitsune.y;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      if (d < nearestDist) { nearestDist = d; nearest = e; }
+    });
+    if (nearest) { targetX = nearest.x; targetY = nearest.y; }
+  }
+
+  const baseAngle = Math.atan2(targetY - kitsune.y, targetX - kitsune.x);
+
+  for (let i = 0; i < cf.count; i++) {
+    // Spread shots if count > 1
+    const spread = cf.count > 1 ? ((i - (cf.count - 1) / 2) * 0.15) : 0;
+    const angle = baseAngle + spread;
+
+    fireballs.push({
+      x: kitsune.x,
+      y: kitsune.y,
+      vx: Math.cos(angle) * cf.speed,
+      vy: Math.sin(angle) * cf.speed,
+      size: cf.size,
+      life: 90,
+      fruit: cf,
+      phase: 0,
+      bounces: cf.special === 'bounce' ? 3 : 0,
+      piercing: cf.special === 'pierce'
+    });
+  }
+
+  // Recoil particles in fruit color
+  for (let i = 0; i < 5; i++) {
+    particles.push({
+      x: kitsune.x,
+      y: kitsune.y,
+      vx: -Math.cos(baseAngle) * (Math.random() * 3 + 1),
+      vy: -Math.sin(baseAngle) * (Math.random() * 3 + 1),
+      size: Math.random() * 6 + 2,
+      life: 20,
+      color: cf.color1,
+      hue: 0,
+      type: 'spark'
+    });
+  }
+}
+
+let superAttackType = 'kitsune';
+
+function activateSuperAttack() {
+  superAttackActive = true;
+  superAttackTimer = 120;
+  power = 0;
+  screenShake = 20;
+  superAttackType = currentFruit.attack;
+
+  const cf = currentFruit;
+  const lvl = document.getElementById('level-up');
+
+  if (cf.attack === 'kitsune') {
+    // Default: spirit wave kills all
+    enemies.forEach(e => { createExplosion(e.x, e.y, e.hue, 30); score += 50 * combo; });
+    enemies = [];
+    superParticles(180, 270, 100);
+    lvl.textContent = '🦊 KITSUNE BLAST! 🦊';
+    lvl.style.color = '#00e5ff';
+
+  } else if (cf.attack === 'flame') {
+    // Fire storm: rain of fireballs from above
+    for (let i = 0; i < 25; i++) {
+      setTimeout(() => {
+        if (!gameStarted) return;
+        const rx = Math.random() * canvas.width;
+        fireballs.push({
+          x: rx, y: -20,
+          vx: (Math.random() - 0.5) * 2, vy: 10 + Math.random() * 5,
+          size: 20, life: 120, fruit: cf, phase: 0, bounces: 0, piercing: false
+        });
+      }, i * 60);
+    }
+    superParticles(15, 40, 80);
+    lvl.textContent = '🔥 LLUVIA DE FUEGO! 🔥';
+    lvl.style.color = '#ff4400';
+
+  } else if (cf.attack === 'ice') {
+    // Ice age: freeze ALL enemies and make them fragile
+    enemies.forEach(e => {
+      e.speed = 0.05;
+      e.hp = 1;
+      createExplosion(e.x, e.y, 190, 10);
+    });
+    superParticles(180, 200, 100);
+    superAttackTimer = 180;
+    lvl.textContent = '❄️ ERA DE HIELO! ❄️';
+    lvl.style.color = '#00ccff';
+
+  } else if (cf.attack === 'dark') {
+    // Black hole: suck all enemies to center then explode
+    const cx = kitsune.x, cy = kitsune.y;
+    enemies.forEach(e => {
+      e.x = cx + (Math.random() - 0.5) * 40;
+      e.y = cy + (Math.random() - 0.5) * 40;
+    });
+    setTimeout(() => {
+      enemies.forEach(e => { createExplosion(e.x, e.y, 270, 20); score += 50 * combo; });
+      enemies = [];
+      screenShake = 25;
+    }, 300);
+    superParticles(260, 290, 120);
+    lvl.textContent = '🌑 AGUJERO NEGRO! 🌑';
+    lvl.style.color = '#7733ff';
+
+  } else if (cf.attack === 'light') {
+    // Light speed: shoot 50 rapid beams in all directions
+    for (let i = 0; i < 50; i++) {
+      const angle = (Math.PI * 2 / 50) * i;
+      fireballs.push({
+        x: kitsune.x, y: kitsune.y,
+        vx: Math.cos(angle) * 22, vy: Math.sin(angle) * 22,
+        size: 12, life: 60, fruit: cf, phase: 0, bounces: 0, piercing: true
+      });
+    }
+    superParticles(50, 60, 80);
+    lvl.textContent = '✨ EXPLOSION DE LUZ! ✨';
+    lvl.style.color = '#ffee00';
+
+  } else if (cf.attack === 'rubber') {
+    // Rubber barrage: tons of bouncy balls everywhere
+    for (let i = 0; i < 30; i++) {
+      const angle = (Math.PI * 2 / 30) * i + Math.random() * 0.3;
+      fireballs.push({
+        x: kitsune.x, y: kitsune.y,
+        vx: Math.cos(angle) * (8 + Math.random() * 6),
+        vy: Math.sin(angle) * (8 + Math.random() * 6),
+        size: 14, life: 150, fruit: cf, phase: Math.random() * 6, bounces: 6, piercing: false
+      });
+    }
+    superParticles(330, 350, 80);
+    lvl.textContent = '🟣 REBOTE TOTAL! 🟣';
+    lvl.style.color = '#ff66aa';
+
+  } else if (cf.attack === 'dragon') {
+    // Dragon rage: giant fire breath beam + kill all
+    enemies.forEach(e => { createExplosion(e.x, e.y, 120, 25); score += 50 * combo; });
+    enemies = [];
+    // Spawn massive dragon fireballs
+    for (let i = 0; i < 8; i++) {
+      const angle = (Math.PI * 2 / 8) * i;
+      fireballs.push({
+        x: kitsune.x, y: kitsune.y,
+        vx: Math.cos(angle) * 6, vy: Math.sin(angle) * 6,
+        size: 45, life: 100, fruit: cf, phase: 0, bounces: 0, piercing: true
+      });
+    }
+    superParticles(100, 140, 120);
+    screenShake = 30;
+    superAttackTimer = 150;
+    lvl.textContent = '🐉 FURIA DEL DRAGON! 🐉';
+    lvl.style.color = '#00ff55';
+
+  } else if (cf.attack === 'leopard') {
+    // Leopard rush: ultra fast multi-claw burst
+    for (let w = 0; w < 5; w++) {
+      setTimeout(() => {
+        if (!gameStarted) return;
+        for (let i = 0; i < 12; i++) {
+          const angle = (Math.PI * 2 / 12) * i + w * 0.3;
+          fireballs.push({
+            x: kitsune.x, y: kitsune.y,
+            vx: Math.cos(angle) * 16, vy: Math.sin(angle) * 16,
+            size: 12, life: 50, fruit: cf, phase: Math.random() * 6, bounces: 0, piercing: false
+          });
+        }
+        screenShake = 8;
+      }, w * 150);
+    }
+    superParticles(25, 40, 80);
+    lvl.textContent = '🐆 ZARPAZO SALVAJE! 🐆';
+    lvl.style.color = '#ffaa00';
+
+  } else if (cf.attack === 'buddha') {
+    // Buddha enlightenment: massive golden shockwave, pushes + damages all
+    enemies.forEach(e => {
+      const dx = e.x - kitsune.x;
+      const dy = e.y - kitsune.y;
+      const d = Math.sqrt(dx * dx + dy * dy) || 1;
+      e.x += (dx / d) * 200;
+      e.y += (dy / d) * 200;
+      e.hp -= 2;
+      createExplosion(e.x, e.y, 50, 12);
+      if (e.hp <= 0) { score += 50 * combo; }
+    });
+    enemies = enemies.filter(e => e.hp > 0);
+    superParticles(45, 55, 120);
+    superAttackTimer = 150;
+    screenShake = 25;
+    // Heal 1 heart!
+    health = Math.min(5, health + 1);
+    lvl.textContent = '🟡 ILUMINACION BUDDHA! +❤️ 🟡';
+    lvl.style.color = '#ffcc00';
+  }
+
+  lvl.style.opacity = 1;
+  setTimeout(() => { lvl.style.opacity = 0; }, 1800);
+  updateUI();
+}
+
+function superParticles(hue1, hue2, count) {
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.PI * 2 / count) * i;
+    particles.push({
+      x: kitsune.x, y: kitsune.y,
+      vx: Math.cos(angle) * (Math.random() * 15 + 5),
+      vy: Math.sin(angle) * (Math.random() * 15 + 5),
+      size: Math.random() * 10 + 5,
+      life: 60,
+      hue: hue1 + Math.random() * (hue2 - hue1),
+      type: 'super'
+    });
+  }
+}
+
+function createExplosion(x, y, hue, count = 15) {
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.PI * 2 / count) * i;
+    const speed = Math.random() * 6 + 2;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      size: Math.random() * 8 + 3,
+      life: 40 + Math.random() * 20,
+      hue: hue + Math.random() * 40 - 20,
+      type: 'explosion'
+    });
+  }
+  screenShake = Math.max(screenShake, 8);
+}
+
+function spawnEnemy() {
+  const side = Math.floor(Math.random() * 4);
+  let x, y;
+  if (side === 0) { x = -30; y = Math.random() * canvas.height; }
+  else if (side === 1) { x = canvas.width + 30; y = Math.random() * canvas.height; }
+  else if (side === 2) { x = Math.random() * canvas.width; y = -30; }
+  else { x = Math.random() * canvas.width; y = canvas.height + 30; }
+
+  const types = ['orb', 'skull', 'diamond'];
+  const type = types[Math.floor(Math.random() * types.length)];
+
+  enemies.push({
+    x, y,
+    speed: enemySpeed + Math.random() * 0.3,
+    size: 20 + Math.random() * 15,
+    hue: Math.random() * 60 + 0, // red-orange
+    type,
+    wobble: Math.random() * Math.PI * 2,
+    hp: type === 'diamond' ? 2 : 1
+  });
+}
+
+// Blox Fruits collection
+// Blox Fruits with unique attack powers
+const bloxFruits = [
+  { name: 'Flame',   emoji: '🔥', color1: '#ff4400', color2: '#ff8800', glow: '#ff6600', points: 20,
+    attack: 'flame', desc: 'Bolas de fuego!', speed: 11, size: 16, count: 1, damage: 1, special: null },
+  { name: 'Ice',     emoji: '❄️', color1: '#00ccff', color2: '#99eeff', glow: '#00e5ff', points: 20,
+    attack: 'ice', desc: 'Cristales de hielo!', speed: 10, size: 14, count: 3, damage: 1, special: 'freeze' },
+  { name: 'Dark',    emoji: '🌑', color1: '#3300aa', color2: '#7733ff', glow: '#6600ff', points: 25,
+    attack: 'dark', desc: 'Vortice oscuro!', speed: 8, size: 22, count: 1, damage: 2, special: 'pierce' },
+  { name: 'Light',   emoji: '✨', color1: '#ffee00', color2: '#ffffff', glow: '#ffcc00', points: 25,
+    attack: 'light', desc: 'Rayo de luz!', speed: 20, size: 10, count: 2, damage: 1, special: null },
+  { name: 'Rubber',  emoji: '🟣', color1: '#cc0066', color2: '#ff66aa', glow: '#ff0088', points: 15,
+    attack: 'rubber', desc: 'Rebote loco!', speed: 9, size: 13, count: 1, damage: 1, special: 'bounce' },
+  { name: 'Dragon',  emoji: '🐉', color1: '#00cc44', color2: '#66ff99', glow: '#00ff55', points: 35,
+    attack: 'dragon', desc: 'Aliento de dragon!', speed: 7, size: 28, count: 1, damage: 3, special: 'explode' },
+  { name: 'Leopard', emoji: '🐆', color1: '#ff8800', color2: '#ffcc66', glow: '#ffaa00', points: 40,
+    attack: 'leopard', desc: 'Garras rapidas!', speed: 14, size: 10, count: 5, damage: 1, special: null },
+  { name: 'Buddha',  emoji: '🟡', color1: '#ffcc00', color2: '#ffffaa', glow: '#ffdd33', points: 30,
+    attack: 'buddha', desc: 'Palma dorada!', speed: 6, size: 35, count: 1, damage: 2, special: 'shockwave' },
+];
+
+// Default starting power (Kitsune spirit fire)
+const kitsuneDefault = { name: 'Kitsune', emoji: '🦊', color1: '#7b2fff', color2: '#00e5ff', glow: '#9b4dff',
+  attack: 'kitsune', desc: 'Fuego espiritual', speed: 12, size: 15, count: 1, damage: 1, special: null };
+
+let currentFruit = kitsuneDefault;
+
+function spawnFruit() {
+  const bf = bloxFruits[Math.floor(Math.random() * bloxFruits.length)];
+  fruits.push({
+    x: Math.random() * (canvas.width - 100) + 50,
+    y: Math.random() * (canvas.height - 200) + 100,
+    size: 24,
+    wobble: Math.random() * Math.PI * 2,
+    life: 500,
+    fruitData: bf
+  });
+}
+
+function drawKitsune() {
+  const k = kitsune;
+  const cf = currentFruit;
+  kitsuneFrame += 0.05;
+  k.breathPhase += 0.04;
+  k.tailPhase += 0.06;
+
+  const breathScale = 1 + Math.sin(k.breathPhase) * 0.03;
+  const dx = k.targetX - k.x;
+  const facingRight = dx > 0;
+  const lb = Math.sin(kitsuneFrame * 4) * 3; // leg bounce
+
+  ctx.save();
+  ctx.translate(k.x, k.y);
+  ctx.scale(facingRight ? 1 : -1, 1);
+  ctx.scale(breathScale, breathScale);
+
+  // Glow under character
+  const glowGrad = ctx.createRadialGradient(0, 20, 0, 0, 20, 80);
+  glowGrad.addColorStop(0, cf.color1 + '66');
+  glowGrad.addColorStop(0.5, cf.glow + '28');
+  glowGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = glowGrad;
+  ctx.fillRect(-80, -50, 160, 130);
+
+  // ===== TRANSFORMATIONS PER FRUIT =====
+  const atk = cf.attack;
+
+  if (atk === 'kitsune') {
+    drawFormKitsune(k, lb);
+  } else if (atk === 'flame') {
+    drawFormFlame(k, lb);
+  } else if (atk === 'ice') {
+    drawFormIce(k, lb);
+  } else if (atk === 'dark') {
+    drawFormDark(k, lb);
+  } else if (atk === 'light') {
+    drawFormLight(k, lb);
+  } else if (atk === 'rubber') {
+    drawFormRubber(k, lb);
+  } else if (atk === 'dragon') {
+    drawFormDragon(k, lb);
+  } else if (atk === 'leopard') {
+    drawFormLeopard(k, lb);
+  } else if (atk === 'buddha') {
+    drawFormBuddha(k, lb);
+  }
+
+  ctx.restore();
+
+  // Aura effect
+  if (superAttackActive || cf !== kitsuneDefault) {
+    ctx.beginPath();
+    ctx.arc(k.x, k.y, 60 + Math.sin(kitsuneFrame * 5) * 15, 0, Math.PI * 2);
+    ctx.strokeStyle = cf.glow + (superAttackActive ? '66' : '22');
+    ctx.lineWidth = superAttackActive ? 4 : 2;
+    ctx.shadowColor = cf.glow;
+    ctx.shadowBlur = superAttackActive ? 40 : 15;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  // Spawn aura particles when transformed
+  if (cf !== kitsuneDefault && Math.random() > 0.7) {
+    const pa = Math.random() * Math.PI * 2;
+    particles.push({
+      x: k.x + Math.cos(pa) * 40, y: k.y + Math.sin(pa) * 30,
+      vx: Math.cos(pa) * 0.5, vy: -Math.random() * 1.5 - 0.5,
+      size: Math.random() * 4 + 2, life: 25,
+      color: cf.glow, hue: 0, type: 'flame'
+    });
+  }
+}
+
+// Helper: draw eyes on any form
+function drawEyes(x1, y1, x2, y2, eyeColor, size) {
+  const s = size || 5;
+  const eg = (Math.sin(kitsuneFrame * 3) + 1) / 2;
+  [{ x: x1, y: y1 }, { x: x2, y: y2 }].forEach(p => {
+    ctx.beginPath(); ctx.ellipse(p.x, p.y, s, s + 1, 0, 0, Math.PI * 2);
+    ctx.fillStyle = '#000'; ctx.fill();
+    ctx.beginPath(); ctx.ellipse(p.x + 1, p.y - 1, s * 0.6, s * 0.8, 0, 0, Math.PI * 2);
+    ctx.fillStyle = eyeColor; ctx.fill();
+    ctx.beginPath(); ctx.arc(p.x + 2, p.y - 2, 1.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#fff'; ctx.fill();
+    if (superAttackActive || eg > 0.7) {
+      ctx.beginPath(); ctx.arc(p.x, p.y, s + 3, 0, Math.PI * 2);
+      ctx.fillStyle = eyeColor + '44'; ctx.shadowColor = eyeColor; ctx.shadowBlur = 15; ctx.fill(); ctx.shadowBlur = 0;
+    }
+  });
+}
+
+// Helper: draw 4 legs
+function drawLegs(color, glowColor, lb, frontX, backX, topY, len) {
+  ctx.fillStyle = color;
+  ctx.fillRect(frontX, topY, 6, len + lb); ctx.fillRect(frontX + 10, topY, 6, len - lb);
+  ctx.fillRect(backX, topY - 2, 6, len - 2 - lb); ctx.fillRect(backX + 8, topY - 2, 6, len - 2 + lb);
+  ctx.fillStyle = glowColor; ctx.shadowColor = glowColor; ctx.shadowBlur = 8;
+  ctx.fillRect(frontX - 1, topY + len + lb, 8, 4); ctx.fillRect(frontX + 9, topY + len - lb, 8, 4);
+  ctx.fillRect(backX - 1, topY + len - 4 - lb, 8, 4); ctx.fillRect(backX + 7, topY + len - 4 + lb, 8, 4);
+  ctx.shadowBlur = 0;
+}
+
+// ====== FORM: KITSUNE (default) ======
+function drawFormKitsune(k, lb) {
+  // Tails
+  for (let t = 0; t < k.numTails; t++) {
+    const ta = ((t - (k.numTails - 1) / 2) * 0.5) + Math.sin(k.tailPhase + t * 0.8) * 0.3;
+    const tl = 60 + Math.sin(k.tailPhase + t) * 10;
+    ctx.beginPath();
+    ctx.moveTo(-15, 0);
+    ctx.bezierCurveTo(-35 + Math.sin(k.tailPhase + t) * 10, -20 * ta - 20,
+      -55 + Math.cos(k.tailPhase + t * 0.7) * 15, -35 * ta - 30, -tl, -40 * ta - 15);
+    ctx.lineWidth = 10 + Math.sin(k.tailPhase + t) * 2;
+    ctx.strokeStyle = `hsl(${180 + t * 20}, 100%, 60%)`;
+    ctx.shadowColor = `hsl(${180 + t * 20}, 100%, 70%)`; ctx.shadowBlur = 20; ctx.stroke();
+    ctx.beginPath(); ctx.arc(-tl, -40 * ta - 15, 6 + Math.sin(k.tailPhase * 2 + t) * 3, 0, Math.PI * 2);
+    ctx.fillStyle = `hsl(${180 + t * 30}, 100%, 80%)`; ctx.shadowColor = '#00e5ff'; ctx.shadowBlur = 25; ctx.fill();
+  }
+  ctx.shadowBlur = 0;
+  // Body
+  ctx.beginPath(); ctx.ellipse(0, 5, 30, 20, 0, 0, Math.PI * 2);
+  const bg = ctx.createLinearGradient(-30, -15, 30, 25);
+  bg.addColorStop(0, '#5b1a9e'); bg.addColorStop(0.5, '#3d1273'); bg.addColorStop(1, '#2a0d52');
+  ctx.fillStyle = bg; ctx.fill(); ctx.strokeStyle = '#7b2fff'; ctx.lineWidth = 2; ctx.stroke();
+  // Head
+  ctx.beginPath(); ctx.ellipse(25, -5, 18, 16, -0.1, 0, Math.PI * 2);
+  const hg = ctx.createRadialGradient(25, -8, 2, 25, -5, 18);
+  hg.addColorStop(0, '#7b3dbd'); hg.addColorStop(1, '#3d1273');
+  ctx.fillStyle = hg; ctx.fill(); ctx.strokeStyle = '#9b4dff'; ctx.lineWidth = 1.5; ctx.stroke();
+  // Ears
+  ctx.fillStyle = '#5b1a9e';
+  ctx.beginPath(); ctx.moveTo(18,-18); ctx.lineTo(12,-35); ctx.lineTo(24,-22); ctx.fill();
+  ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(30,-18); ctx.lineTo(34,-36); ctx.lineTo(38,-20); ctx.fillStyle = '#5b1a9e'; ctx.fill(); ctx.stroke();
+  // Snout
+  ctx.beginPath(); ctx.ellipse(38, 0, 8, 6, 0, 0, Math.PI * 2); ctx.fillStyle = '#4a1580'; ctx.fill();
+  drawEyes(22, -8, 32, -8, '#ff0040');
+  drawLegs('#3d1273', 'rgba(0,229,255,0.6)', lb, 15, -10, 18, 14);
+}
+
+// ====== FORM: FLAME (fire phoenix-fox) ======
+function drawFormFlame(k, lb) {
+  // Fire wings
+  for (let s = -1; s <= 1; s += 2) {
+    ctx.beginPath();
+    ctx.moveTo(0, -5);
+    ctx.quadraticCurveTo(s * 35, -40 + Math.sin(k.tailPhase) * 8, s * 55, -20 + Math.sin(k.tailPhase + 1) * 10);
+    ctx.quadraticCurveTo(s * 40, -10, s * 20, 5);
+    ctx.fillStyle = '#ff440088'; ctx.shadowColor = '#ff6600'; ctx.shadowBlur = 20; ctx.fill();
+    ctx.strokeStyle = '#ff8800'; ctx.lineWidth = 2; ctx.stroke();
+  }
+  // Tail of fire
+  ctx.beginPath(); ctx.moveTo(-15, 5);
+  ctx.quadraticCurveTo(-40, -10 + Math.sin(k.tailPhase) * 15, -65, Math.sin(k.tailPhase * 1.5) * 20);
+  ctx.lineWidth = 12; ctx.strokeStyle = '#ff4400'; ctx.shadowColor = '#ff8800'; ctx.shadowBlur = 25; ctx.stroke();
+  ctx.lineWidth = 6; ctx.strokeStyle = '#ffcc00'; ctx.stroke();
+  ctx.shadowBlur = 0;
+  // Body
+  ctx.beginPath(); ctx.ellipse(0, 5, 28, 18, 0, 0, Math.PI * 2);
+  const bg = ctx.createLinearGradient(-28, -13, 28, 23);
+  bg.addColorStop(0, '#cc2200'); bg.addColorStop(0.5, '#ff4400'); bg.addColorStop(1, '#aa1100');
+  ctx.fillStyle = bg; ctx.fill(); ctx.strokeStyle = '#ff8800'; ctx.lineWidth = 2; ctx.stroke();
+  // Head
+  ctx.beginPath(); ctx.ellipse(24, -5, 17, 15, -0.1, 0, Math.PI * 2);
+  ctx.fillStyle = '#dd3300'; ctx.fill(); ctx.strokeStyle = '#ff6600'; ctx.lineWidth = 1.5; ctx.stroke();
+  // Flame ears
+  ctx.fillStyle = '#ff6600';
+  ctx.beginPath(); ctx.moveTo(17,-16); ctx.lineTo(10,-38 + Math.sin(k.tailPhase*2)*4); ctx.lineTo(23,-20); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(29,-16); ctx.lineTo(35,-40 + Math.sin(k.tailPhase*2+1)*4); ctx.lineTo(37,-18); ctx.fill();
+  ctx.fillStyle = '#ffcc00';
+  ctx.beginPath(); ctx.moveTo(17,-18); ctx.lineTo(13,-30); ctx.lineTo(21,-20); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(31,-18); ctx.lineTo(34,-32); ctx.lineTo(36,-19); ctx.fill();
+  // Snout
+  ctx.beginPath(); ctx.ellipse(36, 0, 7, 5, 0, 0, Math.PI * 2); ctx.fillStyle = '#aa2200'; ctx.fill();
+  drawEyes(20, -8, 30, -8, '#ffcc00');
+  drawLegs('#aa2200', '#ff880088', lb, 14, -10, 16, 14);
+}
+
+// ====== FORM: ICE (frost wolf) ======
+function drawFormIce(k, lb) {
+  // Ice crystal tail
+  ctx.beginPath(); ctx.moveTo(-15, 0);
+  ctx.lineTo(-35 + Math.sin(k.tailPhase)*5, -15); ctx.lineTo(-50, -5 + Math.sin(k.tailPhase)*8);
+  ctx.lineTo(-60, -15 + Math.sin(k.tailPhase+1)*10); ctx.lineTo(-45, -8);
+  ctx.lineTo(-55, 5 + Math.sin(k.tailPhase)*6); ctx.lineTo(-35, 0); ctx.closePath();
+  ctx.fillStyle = '#99eeff88'; ctx.shadowColor = '#00e5ff'; ctx.shadowBlur = 20; ctx.fill();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke(); ctx.shadowBlur = 0;
+  // Body
+  ctx.beginPath(); ctx.ellipse(0, 5, 30, 20, 0, 0, Math.PI * 2);
+  const bg = ctx.createLinearGradient(-30,-15,30,25);
+  bg.addColorStop(0,'#88ddff'); bg.addColorStop(0.5,'#44aadd'); bg.addColorStop(1,'#2288bb');
+  ctx.fillStyle = bg; ctx.fill(); ctx.strokeStyle = '#aaeeff'; ctx.lineWidth = 2; ctx.stroke();
+  // Frost crystals on body
+  ctx.strokeStyle = '#ffffff55'; ctx.lineWidth = 1;
+  for (let i = 0; i < 5; i++) { const a = i * 1.2 - 2;
+    ctx.beginPath(); ctx.moveTo(a*8, -5); ctx.lineTo(a*8-3, -12); ctx.lineTo(a*8+3, -12); ctx.closePath(); ctx.stroke();
+  }
+  // Head
+  ctx.beginPath(); ctx.ellipse(25, -5, 18, 16, -0.1, 0, Math.PI * 2);
+  ctx.fillStyle = '#66ccee'; ctx.fill(); ctx.strokeStyle = '#aaeeff'; ctx.lineWidth = 1.5; ctx.stroke();
+  // Wolf ears (pointy)
+  ctx.fillStyle = '#55bbdd';
+  ctx.beginPath(); ctx.moveTo(16,-18); ctx.lineTo(8,-40); ctx.lineTo(22,-22); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(30,-18); ctx.lineTo(38,-42); ctx.lineTo(40,-20); ctx.fill();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
+  // Snout (longer, wolf)
+  ctx.beginPath(); ctx.ellipse(40, 1, 10, 6, 0, 0, Math.PI * 2); ctx.fillStyle = '#448899'; ctx.fill();
+  // Nose
+  ctx.beginPath(); ctx.arc(48, 0, 3, 0, Math.PI*2); ctx.fillStyle = '#226'; ctx.fill();
+  drawEyes(21, -8, 31, -8, '#00e5ff');
+  drawLegs('#3399bb', '#00e5ff66', lb, 15, -10, 18, 14);
+}
+
+// ====== FORM: DARK (shadow wraith) ======
+function drawFormDark(k, lb) {
+  // Wispy shadow trails
+  for (let i = 0; i < 3; i++) {
+    ctx.beginPath(); ctx.moveTo(-10, 5 + i*5);
+    ctx.quadraticCurveTo(-35, i*10 + Math.sin(k.tailPhase+i)*15, -60 - i*10, Math.sin(k.tailPhase+i*0.7)*25);
+    ctx.lineWidth = 8 - i*2; ctx.strokeStyle = `rgba(100,0,255,${0.4 - i*0.1})`; ctx.stroke();
+  }
+  // Body - hovering cloak shape
+  ctx.beginPath(); ctx.ellipse(0, 5, 28, 22, 0, 0, Math.PI * 2);
+  const bg = ctx.createRadialGradient(0, 0, 5, 0, 5, 28);
+  bg.addColorStop(0, '#2a0066'); bg.addColorStop(0.7, '#110033'); bg.addColorStop(1, '#000011');
+  ctx.fillStyle = bg; ctx.fill(); ctx.strokeStyle = '#7733ff'; ctx.lineWidth = 2; ctx.stroke();
+  // Head with hood
+  ctx.beginPath();
+  ctx.moveTo(10, -20); ctx.quadraticCurveTo(25, -35, 40, -20);
+  ctx.quadraticCurveTo(42, -5, 38, 5); ctx.lineTo(12, 5); ctx.quadraticCurveTo(8, -5, 10, -20);
+  ctx.fillStyle = '#1a0044'; ctx.fill(); ctx.strokeStyle = '#6600ff'; ctx.lineWidth = 1.5; ctx.stroke();
+  // Glowing eyes in hood
+  ctx.fillStyle = '#bb33ff'; ctx.shadowColor = '#bb33ff'; ctx.shadowBlur = 20;
+  ctx.beginPath(); ctx.ellipse(22, -8, 4, 3, 0, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(34, -8, 4, 3, 0, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(23,-9,1.5,0,Math.PI*2); ctx.arc(35,-9,1.5,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+  // Floating (no visible legs) - wisps at bottom
+  ctx.fillStyle = '#3300aa33';
+  for (let i = 0; i < 4; i++) {
+    ctx.beginPath(); ctx.ellipse(-8 + i*10, 25 + Math.sin(k.tailPhase + i)*4, 6, 10, 0, 0, Math.PI*2); ctx.fill();
+  }
+}
+
+// ====== FORM: LIGHT (angel hawk) ======
+function drawFormLight(k, lb) {
+  // Light wings
+  for (let s = -1; s <= 1; s += 2) {
+    ctx.beginPath(); ctx.moveTo(0, -5);
+    ctx.quadraticCurveTo(s*30, -50 + Math.sin(k.tailPhase)*10, s*65, -25 + Math.sin(k.tailPhase+0.5)*8);
+    ctx.quadraticCurveTo(s*50, -5, s*20, 8);
+    ctx.fillStyle = '#ffee0044'; ctx.shadowColor = '#ffcc00'; ctx.shadowBlur = 25; ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+    // Feather lines
+    ctx.strokeStyle = '#ffee6644'; ctx.lineWidth = 1;
+    for (let f = 1; f < 4; f++) {
+      ctx.beginPath(); ctx.moveTo(s*f*12, -10 - f*5); ctx.lineTo(s*(f*12+15), -15 - f*3 + Math.sin(k.tailPhase)*3); ctx.stroke();
+    }
+  }
+  ctx.shadowBlur = 0;
+  // Tail light trail
+  ctx.beginPath(); ctx.moveTo(-15, 3);
+  ctx.quadraticCurveTo(-40, -5 + Math.sin(k.tailPhase)*10, -55, Math.sin(k.tailPhase*1.3)*15);
+  ctx.lineWidth = 6; ctx.strokeStyle = '#ffee00'; ctx.shadowColor = '#fff'; ctx.shadowBlur = 15; ctx.stroke(); ctx.shadowBlur = 0;
+  // Body
+  ctx.beginPath(); ctx.ellipse(0, 5, 26, 17, 0, 0, Math.PI * 2);
+  const bg = ctx.createLinearGradient(-26,-12,26,22);
+  bg.addColorStop(0,'#fff8cc'); bg.addColorStop(0.5,'#ffdd44'); bg.addColorStop(1,'#ccaa00');
+  ctx.fillStyle = bg; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+  // Head
+  ctx.beginPath(); ctx.ellipse(23, -5, 16, 14, -0.1, 0, Math.PI*2);
+  ctx.fillStyle = '#ffee66'; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+  // Halo
+  ctx.beginPath(); ctx.ellipse(25, -25, 14, 4, 0, 0, Math.PI*2);
+  ctx.strokeStyle = '#ffee00'; ctx.lineWidth = 2; ctx.shadowColor = '#fff'; ctx.shadowBlur = 15; ctx.stroke(); ctx.shadowBlur = 0;
+  // Beak
+  ctx.beginPath(); ctx.moveTo(36,-2); ctx.lineTo(46,0); ctx.lineTo(36,3); ctx.closePath();
+  ctx.fillStyle = '#cc8800'; ctx.fill();
+  drawEyes(19, -7, 29, -7, '#ffaa00');
+  drawLegs('#ccaa00', '#ffee0066', lb, 13, -9, 16, 12);
+}
+
+// ====== FORM: RUBBER (stretchy blob) ======
+function drawFormRubber(k, lb) {
+  const squish = 1 + Math.sin(kitsuneFrame * 3) * 0.1;
+  ctx.save(); ctx.scale(squish, 2 - squish);
+  // Tail (springy)
+  ctx.beginPath(); ctx.moveTo(-15, 3);
+  for (let i = 0; i < 6; i++) {
+    ctx.lineTo(-20 - i*8, (i%2===0?-1:1) * (8 + Math.sin(k.tailPhase+i)*4));
+  }
+  ctx.lineWidth = 8; ctx.strokeStyle = '#ff66aa'; ctx.lineCap = 'round'; ctx.stroke();
+  // Body (bouncy round)
+  ctx.beginPath(); ctx.ellipse(0, 5, 28, 22, 0, 0, Math.PI*2);
+  const bg = ctx.createRadialGradient(-5, 0, 3, 0, 5, 28);
+  bg.addColorStop(0, '#ff99cc'); bg.addColorStop(0.6, '#cc0066'); bg.addColorStop(1, '#880044');
+  ctx.fillStyle = bg; ctx.fill(); ctx.strokeStyle = '#ff66aa'; ctx.lineWidth = 2; ctx.stroke();
+  // Shine
+  ctx.beginPath(); ctx.ellipse(-8, -5, 10, 7, -0.3, 0, Math.PI*2); ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fill();
+  // Head
+  ctx.beginPath(); ctx.ellipse(24, -3, 18, 17, 0, 0, Math.PI*2);
+  ctx.fillStyle = '#dd1177'; ctx.fill(); ctx.strokeStyle = '#ff66aa'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(18, -10, 8, 5, -0.3, 0, Math.PI*2); ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.fill();
+  // Round ears
+  ctx.beginPath(); ctx.arc(14, -18, 8, 0, Math.PI*2); ctx.fillStyle = '#cc0066'; ctx.fill();
+  ctx.beginPath(); ctx.arc(34, -18, 8, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = '#ff88bb'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(14,-18,8,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(34,-18,8,0,Math.PI*2); ctx.stroke();
+  // Big smile
+  ctx.beginPath(); ctx.arc(30, 2, 8, 0.1, Math.PI-0.1); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+  drawEyes(20, -6, 32, -6, '#ff0088');
+  ctx.restore();
+  drawLegs('#990055', '#ff008866', lb, 14, -9, 18, 12);
+}
+
+// ====== FORM: DRAGON ======
+function drawFormDragon(k, lb) {
+  // Dragon wings
+  for (let s = -1; s <= 1; s += 2) {
+    ctx.beginPath(); ctx.moveTo(-5, -10);
+    ctx.lineTo(s*20, -45 + Math.sin(k.tailPhase)*10);
+    ctx.lineTo(s*50, -35 + Math.sin(k.tailPhase+0.5)*8);
+    ctx.lineTo(s*55, -15 + Math.sin(k.tailPhase+1)*6);
+    ctx.lineTo(s*40, -5);
+    ctx.lineTo(s*15, 0);
+    ctx.fillStyle = '#00aa3366'; ctx.shadowColor = '#00ff55'; ctx.shadowBlur = 15; ctx.fill();
+    ctx.strokeStyle = '#00ff55'; ctx.lineWidth = 1.5; ctx.stroke();
+    // Wing membrane lines
+    ctx.strokeStyle = '#00cc4433'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(-5,-10); ctx.lineTo(s*50,-35 + Math.sin(k.tailPhase+0.5)*8); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-5,-10); ctx.lineTo(s*55,-15 + Math.sin(k.tailPhase+1)*6); ctx.stroke();
+  }
+  ctx.shadowBlur = 0;
+  // Long dragon tail
+  ctx.beginPath(); ctx.moveTo(-18, 5);
+  ctx.quadraticCurveTo(-40, 15 + Math.sin(k.tailPhase)*10, -55, 5 + Math.sin(k.tailPhase*0.8)*15);
+  ctx.quadraticCurveTo(-70, -5 + Math.sin(k.tailPhase+1)*10, -80, Math.sin(k.tailPhase*1.2)*20);
+  ctx.lineWidth = 10; ctx.strokeStyle = '#008833'; ctx.stroke();
+  ctx.lineWidth = 5; ctx.strokeStyle = '#00cc44'; ctx.stroke();
+  // Tail spikes
+  for (let i = 0; i < 3; i++) {
+    const tx = -30 - i*18; const ty = 5 + Math.sin(k.tailPhase + i*0.5) * 10;
+    ctx.beginPath(); ctx.moveTo(tx-3, ty); ctx.lineTo(tx, ty-10); ctx.lineTo(tx+3, ty);
+    ctx.fillStyle = '#00ff55'; ctx.fill();
+  }
+  // Body (dragon)
+  ctx.beginPath(); ctx.ellipse(0, 5, 32, 22, 0, 0, Math.PI*2);
+  const bg = ctx.createLinearGradient(-32,-17,32,27);
+  bg.addColorStop(0,'#006622'); bg.addColorStop(0.5,'#009933'); bg.addColorStop(1,'#004411');
+  ctx.fillStyle = bg; ctx.fill(); ctx.strokeStyle = '#00cc44'; ctx.lineWidth = 2; ctx.stroke();
+  // Scales pattern
+  ctx.strokeStyle = '#00ff5522'; ctx.lineWidth = 1;
+  for (let r = 0; r < 3; r++) for (let c = -2; c <= 2; c++) {
+    ctx.beginPath(); ctx.arc(c*10, r*8-5, 6, 0, Math.PI); ctx.stroke();
+  }
+  // Belly plates
+  ctx.beginPath(); ctx.ellipse(0, 12, 18, 8, 0, 0, Math.PI*2); ctx.fillStyle = '#44bb6633'; ctx.fill();
+  // Head (dragon, horned)
+  ctx.beginPath(); ctx.ellipse(28, -5, 20, 17, -0.1, 0, Math.PI*2);
+  ctx.fillStyle = '#007722'; ctx.fill(); ctx.strokeStyle = '#00cc44'; ctx.lineWidth = 1.5; ctx.stroke();
+  // Horns
+  ctx.fillStyle = '#ccaa44';
+  ctx.beginPath(); ctx.moveTo(18,-18); ctx.lineTo(10,-42); ctx.lineTo(15,-38); ctx.lineTo(22,-20); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(34,-18); ctx.lineTo(40,-44); ctx.lineTo(44,-38); ctx.lineTo(38,-20); ctx.fill();
+  // Snout (longer)
+  ctx.beginPath(); ctx.ellipse(43, 0, 10, 7, 0, 0, Math.PI*2); ctx.fillStyle = '#006622'; ctx.fill();
+  // Nostrils with smoke
+  ctx.fillStyle = '#004400';
+  ctx.beginPath(); ctx.arc(50, -2, 2, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(50, 3, 2, 0, Math.PI*2); ctx.fill();
+  // Teeth
+  ctx.fillStyle = '#fff';
+  for (let t = 0; t < 4; t++) { ctx.beginPath(); ctx.moveTo(40+t*3, 6); ctx.lineTo(41+t*3, 10); ctx.lineTo(42+t*3, 6); ctx.fill(); }
+  drawEyes(23, -8, 35, -8, '#00ff55');
+  drawLegs('#005518', '#00ff5566', lb, 16, -10, 18, 16);
+}
+
+// ====== FORM: LEOPARD ======
+function drawFormLeopard(k, lb) {
+  // Long tail
+  ctx.beginPath(); ctx.moveTo(-15, 5);
+  ctx.quadraticCurveTo(-35, -10 + Math.sin(k.tailPhase)*12, -55, 5 + Math.sin(k.tailPhase*0.9)*15);
+  ctx.quadraticCurveTo(-65, 15, -70, 10 + Math.sin(k.tailPhase+1)*8);
+  ctx.lineWidth = 7; ctx.strokeStyle = '#cc7700'; ctx.stroke();
+  ctx.lineWidth = 4; ctx.strokeStyle = '#ffaa33'; ctx.stroke();
+  // Spots on tail
+  ctx.fillStyle = '#66330066';
+  for (let i = 0; i < 4; i++) {
+    const tx = -25 - i*12; const ty = Math.sin(k.tailPhase + i*0.4) * 10;
+    ctx.beginPath(); ctx.arc(tx, ty, 3, 0, Math.PI*2); ctx.fill();
+  }
+  // Body (sleek, fast)
+  ctx.beginPath(); ctx.ellipse(0, 5, 32, 18, 0, 0, Math.PI*2);
+  const bg = ctx.createLinearGradient(-32,-13,32,23);
+  bg.addColorStop(0,'#ffaa33'); bg.addColorStop(0.5,'#dd8800'); bg.addColorStop(1,'#aa6600');
+  ctx.fillStyle = bg; ctx.fill(); ctx.strokeStyle = '#ffcc66'; ctx.lineWidth = 2; ctx.stroke();
+  // Leopard spots
+  ctx.fillStyle = '#66330088';
+  const spots = [[-12,-2],[5,0],[15,-5],[-5,8],[10,10],[-15,10],[20,5],[-8,-8],[0,-6]];
+  spots.forEach(s => { ctx.beginPath(); ctx.ellipse(s[0],s[1]+5,4,3,Math.random(),0,Math.PI*2); ctx.fill(); });
+  // Belly
+  ctx.beginPath(); ctx.ellipse(0, 14, 20, 6, 0, 0, Math.PI*2); ctx.fillStyle = '#ffddaa44'; ctx.fill();
+  // Head
+  ctx.beginPath(); ctx.ellipse(27, -4, 17, 15, -0.1, 0, Math.PI*2);
+  ctx.fillStyle = '#dd8800'; ctx.fill(); ctx.strokeStyle = '#ffaa33'; ctx.lineWidth = 1.5; ctx.stroke();
+  // Cat ears
+  ctx.fillStyle = '#cc7700';
+  ctx.beginPath(); ctx.moveTo(17,-16); ctx.lineTo(14,-34); ctx.lineTo(24,-20); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(33,-16); ctx.lineTo(38,-35); ctx.lineTo(40,-18); ctx.fill();
+  ctx.fillStyle = '#ffaa5566';
+  ctx.beginPath(); ctx.moveTo(18,-18); ctx.lineTo(16,-28); ctx.lineTo(22,-20); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(34,-17); ctx.lineTo(37,-29); ctx.lineTo(39,-19); ctx.fill();
+  // Nose + whiskers
+  ctx.beginPath(); ctx.ellipse(40, 0, 5, 3, 0, 0, Math.PI*2); ctx.fillStyle = '#aa5500'; ctx.fill();
+  ctx.beginPath(); ctx.arc(43, -1, 2.5, 0, Math.PI*2); ctx.fillStyle = '#331100'; ctx.fill();
+  ctx.strokeStyle = '#fff8'; ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.moveTo(43,0); ctx.lineTo(55,-3); ctx.moveTo(43,1); ctx.lineTo(55,2); ctx.moveTo(43,3); ctx.lineTo(53,6); ctx.stroke();
+  // Spots on head
+  ctx.fillStyle = '#66330066';
+  ctx.beginPath(); ctx.arc(20,-2,2.5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(35,-2,2,0,Math.PI*2); ctx.fill();
+  drawEyes(22, -7, 33, -7, '#ffaa00');
+  drawLegs('#aa6600', '#ffaa0066', lb, 16, -10, 16, 16);
+}
+
+// ====== FORM: BUDDHA (golden giant) ======
+function drawFormBuddha(k, lb) {
+  // Golden aura rings
+  ctx.strokeStyle = '#ffcc0033'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(0, 0, 50 + Math.sin(k.tailPhase)*5, 0, Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(0, 0, 60 + Math.sin(k.tailPhase+1)*5, 0, Math.PI*2); ctx.stroke();
+  // Body (big, round, golden)
+  ctx.beginPath(); ctx.ellipse(0, 5, 35, 28, 0, 0, Math.PI*2);
+  const bg = ctx.createRadialGradient(-5, -5, 5, 0, 5, 35);
+  bg.addColorStop(0, '#ffffaa'); bg.addColorStop(0.5, '#ffcc00'); bg.addColorStop(1, '#aa8800');
+  ctx.fillStyle = bg; ctx.shadowColor = '#ffdd33'; ctx.shadowBlur = 20; ctx.fill();
+  ctx.strokeStyle = '#ffee66'; ctx.lineWidth = 2; ctx.stroke(); ctx.shadowBlur = 0;
+  // Belly symbol
+  ctx.font = 'bold 22px Arial'; ctx.textAlign = 'center'; ctx.fillStyle = '#aa880066';
+  ctx.fillText('☸', 0, 14);
+  // Head
+  ctx.beginPath(); ctx.ellipse(20, -12, 22, 20, 0, 0, Math.PI*2);
+  ctx.fillStyle = '#ffcc00'; ctx.fill(); ctx.strokeStyle = '#ffee66'; ctx.lineWidth = 1.5; ctx.stroke();
+  // Buddha hair bumps
+  ctx.fillStyle = '#ddaa00';
+  for (let r = 0; r < 3; r++) for (let c = -2; c <= 2; c++) {
+    ctx.beginPath(); ctx.arc(18 + c*7, -22 - r*6, 3.5, 0, Math.PI*2); ctx.fill();
+  }
+  // Ears (long lobes)
+  ctx.fillStyle = '#eebb22';
+  ctx.beginPath(); ctx.ellipse(2, -5, 5, 12, 0.2, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(38, -5, 5, 12, -0.2, 0, Math.PI*2); ctx.fill();
+  // Serene smile
+  ctx.beginPath(); ctx.arc(25, 0, 8, 0.2, Math.PI-0.2); ctx.strokeStyle = '#886600'; ctx.lineWidth = 2; ctx.stroke();
+  // Closed/serene eyes
+  ctx.strokeStyle = '#886600'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(14, -10, 5, 0.3, Math.PI-0.3); ctx.stroke();
+  ctx.beginPath(); ctx.arc(28, -10, 5, 0.3, Math.PI-0.3); ctx.stroke();
+  // Third eye dot
+  ctx.beginPath(); ctx.arc(21, -18, 3, 0, Math.PI*2);
+  ctx.fillStyle = '#ff3300'; ctx.shadowColor = '#ff3300'; ctx.shadowBlur = 10; ctx.fill(); ctx.shadowBlur = 0;
+  // Thick arms/legs
+  ctx.fillStyle = '#ccaa00';
+  ctx.fillRect(28, 18, 10, 16 + lb); ctx.fillRect(38, 18, 10, 16 - lb);
+  ctx.fillRect(-12, 16, 10, 14 - lb); ctx.fillRect(-2, 16, 10, 14 + lb);
+  ctx.fillStyle = '#ffdd3366'; ctx.shadowColor = '#ffcc00'; ctx.shadowBlur = 8;
+  ctx.fillRect(27, 32 + lb, 12, 5); ctx.fillRect(37, 32 - lb, 12, 5);
+  ctx.fillRect(-13, 28 - lb, 12, 5); ctx.fillRect(-3, 28 + lb, 12, 5);
+  ctx.shadowBlur = 0;
+}
+
+function drawFireball(fb) {
+  const f = fb.fruit;
+  fb.phase += 0.15;
+  ctx.save();
+  ctx.translate(fb.x, fb.y);
+
+  const angle = Math.atan2(fb.vy, fb.vx);
+
+  if (f.attack === 'flame' || f.attack === 'kitsune') {
+    // Fire ball with flickering
+    const flicker = Math.sin(fb.phase * 5) * 3;
+    ctx.beginPath();
+    ctx.arc(0, 0, fb.size + flicker, 0, Math.PI * 2);
+    const fg = ctx.createRadialGradient(0, 0, 0, 0, 0, fb.size + flicker);
+    fg.addColorStop(0, '#fff');
+    fg.addColorStop(0.3, f.color2);
+    fg.addColorStop(0.7, f.color1);
+    fg.addColorStop(1, 'transparent');
+    ctx.fillStyle = fg;
+    ctx.shadowColor = f.glow;
+    ctx.shadowBlur = 25;
+    ctx.fill();
+
+  } else if (f.attack === 'ice') {
+    // Ice crystal shard
+    ctx.rotate(angle + fb.phase);
+    ctx.beginPath();
+    for (let i = 0; i < 6; i++) {
+      const a = (Math.PI * 2 / 6) * i;
+      const r = i % 2 === 0 ? fb.size : fb.size * 0.5;
+      ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+    }
+    ctx.closePath();
+    ctx.fillStyle = f.color2;
+    ctx.shadowColor = f.glow;
+    ctx.shadowBlur = 20;
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+  } else if (f.attack === 'dark') {
+    // Dark vortex spiral
+    ctx.rotate(fb.phase * 2);
+    const dg = ctx.createRadialGradient(0, 0, 0, 0, 0, fb.size);
+    dg.addColorStop(0, '#000');
+    dg.addColorStop(0.5, f.color1);
+    dg.addColorStop(1, f.color2 + '88');
+    ctx.fillStyle = dg;
+    ctx.shadowColor = f.glow;
+    ctx.shadowBlur = 30;
+    ctx.beginPath();
+    ctx.arc(0, 0, fb.size, 0, Math.PI * 2);
+    ctx.fill();
+    // Spiral lines
+    ctx.strokeStyle = f.glow + '88';
+    ctx.lineWidth = 2;
+    for (let s = 0; s < 2; s++) {
+      ctx.beginPath();
+      for (let a = 0; a < Math.PI * 3; a += 0.2) {
+        const r = a * 2.5;
+        ctx.lineTo(Math.cos(a + s * Math.PI) * r, Math.sin(a + s * Math.PI) * r);
+      }
+      ctx.stroke();
+    }
+
+  } else if (f.attack === 'light') {
+    // Light beam - elongated streak
+    ctx.rotate(angle);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, fb.size * 2, fb.size * 0.4, 0, 0, Math.PI * 2);
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = f.glow;
+    ctx.shadowBlur = 30;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(0, 0, fb.size * 2.5, fb.size * 0.2, 0, 0, Math.PI * 2);
+    ctx.fillStyle = f.color1 + '88';
+    ctx.fill();
+
+  } else if (f.attack === 'rubber') {
+    // Rubber bouncy ball
+    const squash = 1 + Math.sin(fb.phase * 8) * 0.2;
+    ctx.scale(squash, 2 - squash);
+    ctx.beginPath();
+    ctx.arc(0, 0, fb.size, 0, Math.PI * 2);
+    const rg = ctx.createRadialGradient(-3, -3, 1, 0, 0, fb.size);
+    rg.addColorStop(0, '#fff');
+    rg.addColorStop(0.4, f.color2);
+    rg.addColorStop(1, f.color1);
+    ctx.fillStyle = rg;
+    ctx.shadowColor = f.glow;
+    ctx.shadowBlur = 15;
+    ctx.fill();
+    // Shine
+    ctx.beginPath();
+    ctx.arc(-4, -4, 4, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.fill();
+
+  } else if (f.attack === 'dragon') {
+    // Dragon breath - big fireball with scales pattern
+    const flicker = Math.sin(fb.phase * 4) * 4;
+    ctx.beginPath();
+    ctx.arc(0, 0, fb.size + flicker, 0, Math.PI * 2);
+    const dg2 = ctx.createRadialGradient(0, 0, 0, 0, 0, fb.size + flicker);
+    dg2.addColorStop(0, '#ffffaa');
+    dg2.addColorStop(0.2, f.color2);
+    dg2.addColorStop(0.6, f.color1);
+    dg2.addColorStop(1, '#003300');
+    ctx.fillStyle = dg2;
+    ctx.shadowColor = f.glow;
+    ctx.shadowBlur = 35;
+    ctx.fill();
+    // Scale pattern
+    ctx.strokeStyle = 'rgba(0,100,0,0.4)';
+    ctx.lineWidth = 1;
+    for (let sx = -2; sx <= 2; sx++) {
+      for (let sy = -2; sy <= 2; sy++) {
+        ctx.beginPath();
+        ctx.arc(sx * 8, sy * 8, 5, 0, Math.PI);
+        ctx.stroke();
+      }
+    }
+
+  } else if (f.attack === 'leopard') {
+    // Leopard claw slash
+    ctx.rotate(angle);
+    ctx.strokeStyle = f.color1;
+    ctx.shadowColor = f.glow;
+    ctx.shadowBlur = 15;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    for (let c = -1; c <= 1; c++) {
+      ctx.beginPath();
+      ctx.moveTo(-fb.size, c * 5);
+      ctx.quadraticCurveTo(0, c * 8 + Math.sin(fb.phase) * 3, fb.size, c * 4);
+      ctx.stroke();
+    }
+    // Claw tip dots
+    ctx.fillStyle = '#fff';
+    for (let c = -1; c <= 1; c++) {
+      ctx.beginPath();
+      ctx.arc(fb.size, c * 4, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+  } else if (f.attack === 'buddha') {
+    // Golden palm - big glowing hand shape
+    ctx.rotate(angle);
+    // Palm circle
+    ctx.beginPath();
+    ctx.arc(0, 0, fb.size * 0.7, 0, Math.PI * 2);
+    const bg = ctx.createRadialGradient(0, 0, 0, 0, 0, fb.size * 0.7);
+    bg.addColorStop(0, '#fff');
+    bg.addColorStop(0.3, f.color2);
+    bg.addColorStop(1, f.color1);
+    ctx.fillStyle = bg;
+    ctx.shadowColor = f.glow;
+    ctx.shadowBlur = 35;
+    ctx.fill();
+    // Symbol
+    ctx.fillStyle = '#cc8800';
+    ctx.font = `bold ${fb.size * 0.7}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('☸', 0, 0);
+    // Radiating ring
+    ctx.beginPath();
+    ctx.arc(0, 0, fb.size + Math.sin(fb.phase * 3) * 5, 0, Math.PI * 2);
+    ctx.strokeStyle = f.glow + '55';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  ctx.shadowBlur = 0;
+  ctx.restore();
+
+  // Trail particles in fruit color
+  if (Math.random() > 0.3) {
+    particles.push({
+      x: fb.x + (Math.random() - 0.5) * 10,
+      y: fb.y + (Math.random() - 0.5) * 10,
+      vx: -fb.vx * 0.1 + (Math.random() - 0.5) * 2,
+      vy: -fb.vy * 0.1 + (Math.random() - 0.5) * 2,
+      size: Math.random() * 5 + 2,
+      life: 15,
+      color: f.color1,
+      hue: 0,
+      type: 'trail'
+    });
+  }
+}
+
+function drawEnemy(e) {
+  ctx.save();
+  ctx.translate(e.x, e.y);
+
+  const wobble = Math.sin(e.wobble) * 5;
+  e.wobble += 0.05;
+  const throb = 1 + Math.sin(e.wobble * 3) * 0.06;
+
+  // Dark menacing aura
+  const aura = ctx.createRadialGradient(0, wobble, e.size * 0.3, 0, wobble, e.size * 2);
+  aura.addColorStop(0, 'rgba(255, 0, 0, 0.2)');
+  aura.addColorStop(1, 'transparent');
+  ctx.fillStyle = aura;
+  ctx.fillRect(-e.size * 2, wobble - e.size * 2, e.size * 4, e.size * 4);
+
+  ctx.scale(throb, throb);
+
+  if (e.type === 'orb') {
+    // Dark shadow orb
+    ctx.beginPath();
+    ctx.arc(0, wobble, e.size, 0, Math.PI * 2);
+    const eg = ctx.createRadialGradient(0, wobble, 0, 0, wobble, e.size);
+    eg.addColorStop(0, '#440000');
+    eg.addColorStop(0.6, '#220000');
+    eg.addColorStop(1, '#000');
+    ctx.fillStyle = eg;
+    ctx.shadowColor = '#ff0000';
+    ctx.shadowBlur = 15;
+    ctx.fill();
+    // Angry eyes
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#ff0000';
+    ctx.shadowColor = '#ff0000';
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.ellipse(-7, wobble - 3, 4, 3, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(7, wobble - 3, 4, 3, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    // Pupils
+    ctx.fillStyle = '#fff';
+    ctx.shadowBlur = 0;
+    ctx.beginPath();
+    ctx.arc(-6, wobble - 3, 1.5, 0, Math.PI * 2);
+    ctx.arc(8, wobble - 3, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    // Evil grin
+    ctx.strokeStyle = '#ff3333';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, wobble + 4, 7, 0.2, Math.PI - 0.2);
+    ctx.stroke();
+    // Fangs
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.moveTo(-5, wobble + 6); ctx.lineTo(-3, wobble + 11); ctx.lineTo(-1, wobble + 6);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(1, wobble + 6); ctx.lineTo(3, wobble + 11); ctx.lineTo(5, wobble + 6);
+    ctx.fill();
+
+  } else if (e.type === 'skull') {
+    // Dark skull
+    ctx.shadowColor = '#aa0000';
+    ctx.shadowBlur = 15;
+    ctx.fillStyle = '#1a0a0a';
+    ctx.beginPath();
+    ctx.arc(0, wobble, e.size * 0.85, 0, Math.PI * 2);
+    ctx.fill();
+    // Jaw
+    ctx.beginPath();
+    ctx.ellipse(0, wobble + e.size * 0.5, e.size * 0.5, e.size * 0.3, 0, 0, Math.PI);
+    ctx.fillStyle = '#110505';
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    // Hollow eyes
+    ctx.fillStyle = '#ff0000';
+    ctx.shadowColor = '#ff0000';
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.ellipse(-8, wobble - 4, 5, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(8, wobble - 4, 5, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    // Inner eye dark
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.arc(-8, wobble - 4, 2.5, 0, Math.PI * 2);
+    ctx.arc(8, wobble - 4, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    // Nose hole
+    ctx.fillStyle = '#330000';
+    ctx.beginPath();
+    ctx.moveTo(-3, wobble + 4); ctx.lineTo(0, wobble + 1); ctx.lineTo(3, wobble + 4);
+    ctx.fill();
+    // Teeth
+    ctx.fillStyle = '#aaa';
+    for (let t = -3; t <= 3; t++) {
+      ctx.fillRect(t * 4 - 1, wobble + e.size * 0.35, 3, 5);
+    }
+    // Cracks
+    ctx.strokeStyle = '#330000';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-4, wobble - e.size * 0.7);
+    ctx.lineTo(-6, wobble - 2);
+    ctx.lineTo(-10, wobble + 2);
+    ctx.stroke();
+
+  } else {
+    // Dark crystal / diamond enemy
+    ctx.shadowColor = '#ff0044';
+    ctx.shadowBlur = 18;
+    const dg = ctx.createLinearGradient(0, -e.size + wobble, 0, e.size + wobble);
+    dg.addColorStop(0, '#330011');
+    dg.addColorStop(0.5, '#660022');
+    dg.addColorStop(1, '#220008');
+    ctx.fillStyle = dg;
+    ctx.beginPath();
+    ctx.moveTo(0, -e.size + wobble);
+    ctx.lineTo(e.size * 0.7, wobble);
+    ctx.lineTo(0, e.size + wobble);
+    ctx.lineTo(-e.size * 0.7, wobble);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#ff0044';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    // Inner lines
+    ctx.strokeStyle = 'rgba(255,0,68,0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, -e.size + wobble); ctx.lineTo(0, e.size + wobble);
+    ctx.moveTo(-e.size * 0.7, wobble); ctx.lineTo(e.size * 0.7, wobble);
+    ctx.stroke();
+    // Evil eye in center
+    ctx.fillStyle = '#ff0044';
+    ctx.shadowColor = '#ff0044';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.ellipse(0, wobble, 6, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.ellipse(0, wobble, 2, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.shadowBlur = 0;
+  ctx.restore();
+}
+
+function drawFruit(f) {
+  ctx.save();
+  ctx.translate(f.x, f.y);
+  const d = f.fruitData;
+
+  const bob = Math.sin(f.wobble) * 8;
+  f.wobble += 0.04;
+  const pulse = 1 + Math.sin(f.wobble * 3) * 0.08;
+
+  // Outer glow aura (friendly, bright)
+  const auraGrad = ctx.createRadialGradient(0, bob, f.size * 0.5, 0, bob, f.size * 2.5);
+  auraGrad.addColorStop(0, d.glow + '55');
+  auraGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = auraGrad;
+  ctx.fillRect(-f.size * 2.5, bob - f.size * 2.5, f.size * 5, f.size * 5);
+
+  // Spinning glow ring
+  ctx.beginPath();
+  ctx.arc(0, bob, f.size + 10, 0, Math.PI * 2);
+  ctx.strokeStyle = d.glow + '66';
+  ctx.lineWidth = 2;
+  ctx.shadowColor = d.glow;
+  ctx.shadowBlur = 25;
+  ctx.stroke();
+
+  // Dashed orbit ring
+  ctx.setLineDash([4, 6]);
+  ctx.beginPath();
+  ctx.arc(0, bob, f.size + 16, f.wobble, f.wobble + Math.PI * 1.5);
+  ctx.strokeStyle = d.glow + '44';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.shadowBlur = 0;
+
+  // Main fruit body
+  ctx.save();
+  ctx.scale(pulse, pulse);
+  ctx.beginPath();
+  ctx.arc(0, bob, f.size, 0, Math.PI * 2);
+  const fg = ctx.createRadialGradient(-5, bob - 5, 2, 0, bob, f.size);
+  fg.addColorStop(0, d.color2);
+  fg.addColorStop(0.6, d.color1);
+  fg.addColorStop(1, '#000');
+  ctx.fillStyle = fg;
+  ctx.shadowColor = d.glow;
+  ctx.shadowBlur = 20;
+  ctx.fill();
+
+  // Devil fruit swirl pattern
+  ctx.strokeStyle = d.color2 + '88';
+  ctx.lineWidth = 1.5;
+  for (let s = 0; s < 3; s++) {
+    ctx.beginPath();
+    const startA = (Math.PI * 2 / 3) * s + f.wobble;
+    for (let a = 0; a < Math.PI * 1.5; a += 0.1) {
+      const r = 3 + a * 4;
+      const px = Math.cos(startA + a) * r;
+      const py = bob + Math.sin(startA + a) * r;
+      if (a === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+  }
+
+  // Stem
+  ctx.beginPath();
+  ctx.moveTo(-2, bob - f.size + 2);
+  ctx.quadraticCurveTo(0, bob - f.size - 8, 5, bob - f.size - 5);
+  ctx.strokeStyle = '#228833';
+  ctx.lineWidth = 3;
+  ctx.shadowBlur = 0;
+  ctx.stroke();
+
+  // Leaf
+  ctx.beginPath();
+  ctx.ellipse(7, bob - f.size - 6, 6, 3, 0.5, 0, Math.PI * 2);
+  ctx.fillStyle = '#33cc55';
+  ctx.fill();
+
+  // Shine highlight
+  ctx.beginPath();
+  ctx.arc(-6, bob - 8, 5, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.fill();
+
+  ctx.restore();
+
+  // Emoji icon
+  ctx.font = '16px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText(d.emoji, 0, bob + 6);
+
+  // Fruit name label
+  ctx.font = 'bold 11px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#fff';
+  ctx.shadowColor = d.glow;
+  ctx.shadowBlur = 8;
+  ctx.fillText(d.name, 0, bob + f.size + 20);
+  ctx.shadowBlur = 0;
+
+  // Blinking life indicator when almost gone
+  if (f.life < 100 && Math.sin(f.wobble * 10) > 0) {
+    ctx.globalAlpha = 0.5;
+    ctx.beginPath();
+    ctx.arc(0, bob, f.size + 5, 0, Math.PI * 2);
+    ctx.strokeStyle = '#ff3333';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.restore();
+}
+
+function drawParticle(p) {
+  ctx.save();
+  const alpha = p.life / 60;
+
+  // Use direct color if available, otherwise hue-based
+  const getColor = (a) => {
+    if (p.color) return p.color + Math.round(a * 255).toString(16).padStart(2, '0');
+    return `hsla(${p.hue}, 100%, 70%, ${a})`;
+  };
+  const getGlow = () => {
+    if (p.color) return p.color;
+    return `hsl(${p.hue}, 100%, 70%)`;
+  };
+
+  if (p.type === 'flame' || p.type === 'trail') {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fillStyle = getColor(alpha);
+    ctx.shadowColor = getGlow();
+    ctx.shadowBlur = 10;
+    ctx.fill();
+  } else if (p.type === 'explosion' || p.type === 'super') {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI * 2);
+    ctx.fillStyle = getColor(alpha);
+    ctx.shadowColor = getGlow();
+    ctx.shadowBlur = 15;
+    ctx.fill();
+  } else {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI * 2);
+    ctx.fillStyle = getColor(alpha);
+    ctx.fill();
+  }
+
+  ctx.shadowBlur = 0;
+  ctx.restore();
+}
+
+function drawCursor() {
+  ctx.save();
+  ctx.translate(mouseX, mouseY);
+
+  // Crosshair
+  ctx.strokeStyle = 'rgba(0, 229, 255, 0.8)';
+  ctx.lineWidth = 2;
+  ctx.shadowColor = '#00e5ff';
+  ctx.shadowBlur = 10;
+
+  ctx.beginPath();
+  ctx.arc(0, 0, 15, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(0, -22); ctx.lineTo(0, -8);
+  ctx.moveTo(0, 8); ctx.lineTo(0, 22);
+  ctx.moveTo(-22, 0); ctx.lineTo(-8, 0);
+  ctx.moveTo(8, 0); ctx.lineTo(22, 0);
+  ctx.stroke();
+
+  // Center dot
+  ctx.beginPath();
+  ctx.arc(0, 0, 3, 0, Math.PI * 2);
+  ctx.fillStyle = '#ff3366';
+  ctx.shadowColor = '#ff3366';
+  ctx.fill();
+
+  ctx.shadowBlur = 0;
+  ctx.restore();
+}
+
+function drawBackground() {
+  // Dark gradient bg
+  const bg = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, canvas.width/2, canvas.height/2, canvas.width * 0.7);
+  bg.addColorStop(0, `hsl(${bgHue}, 40%, 8%)`);
+  bg.addColorStop(1, `hsl(${bgHue - 20}, 50%, 3%)`);
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Stars
+  stars.forEach(s => {
+    s.twinkle += s.speed;
+    const brightness = 0.3 + Math.sin(s.twinkle) * 0.3;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(200, 200, 255, ${brightness})`;
+    ctx.fill();
+  });
+
+  // Ground with grass effect
+  const groundY = canvas.height - 60;
+  const grassGrad = ctx.createLinearGradient(0, groundY, 0, canvas.height);
+  grassGrad.addColorStop(0, '#0a4a0a');
+  grassGrad.addColorStop(0.3, '#063806');
+  grassGrad.addColorStop(1, '#021a02');
+  ctx.fillStyle = grassGrad;
+  ctx.fillRect(0, groundY, canvas.width, 60);
+
+  // Grass glow
+  ctx.fillStyle = 'rgba(0, 255, 100, 0.08)';
+  ctx.fillRect(0, groundY, canvas.width, 3);
+
+  // Grid floor hint
+  ctx.strokeStyle = 'rgba(0, 200, 100, 0.05)';
+  ctx.lineWidth = 1;
+  for (let gx = 0; gx < canvas.width; gx += 60) {
+    ctx.beginPath();
+    ctx.moveTo(gx, groundY);
+    ctx.lineTo(gx, canvas.height);
+    ctx.stroke();
+  }
+}
+
+function checkCollisions() {
+  // Fireballs vs enemies
+  for (let fi = fireballs.length - 1; fi >= 0; fi--) {
+    const fb = fireballs[fi];
+    if (!fb) continue;
+    let hitSomething = false;
+    for (let ei = enemies.length - 1; ei >= 0; ei--) {
+      const e = enemies[ei];
+      const dx = fb.x - e.x;
+      const dy = fb.y - e.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < fb.size + e.size) {
+        const dmg = fb.fruit ? fb.fruit.damage : 1;
+        e.hp -= dmg;
+        if (e.hp <= 0) {
+          createExplosion(e.x, e.y, e.hue);
+
+          // Explode special: damages nearby enemies
+          if (fb.fruit && fb.fruit.special === 'explode') {
+            enemies.forEach((ne, nei) => {
+              if (nei === ei) return;
+              const ndx = e.x - ne.x;
+              const ndy = e.y - ne.y;
+              if (Math.sqrt(ndx*ndx + ndy*ndy) < 100) {
+                ne.hp -= 2;
+                createExplosion(ne.x, ne.y, 120, 8);
+                if (ne.hp <= 0) {
+                  createExplosion(ne.x, ne.y, ne.hue, 15);
+                  score += 10 * combo;
+                  combo++;
+                }
+              }
+            });
+            // Remove dead enemies from explosion
+            for (let k = enemies.length - 1; k >= 0; k--) {
+              if (enemies[k].hp <= 0) enemies.splice(k, 1);
+            }
+            createExplosion(e.x, e.y, 120, 25);
+            screenShake = 12;
+          }
+
+          // Shockwave special: pushes all enemies back
+          if (fb.fruit && fb.fruit.special === 'shockwave') {
+            enemies.forEach(ne => {
+              const sdx = ne.x - e.x;
+              const sdy = ne.y - e.y;
+              const sd = Math.sqrt(sdx*sdx + sdy*sdy);
+              if (sd < 200 && sd > 0) {
+                ne.x += (sdx / sd) * 80;
+                ne.y += (sdy / sd) * 80;
+              }
+            });
+            createExplosion(e.x, e.y, 50, 30);
+            screenShake = 10;
+          }
+
+          // Freeze special: slow nearby enemies
+          if (fb.fruit && fb.fruit.special === 'freeze') {
+            enemies.forEach(ne => {
+              const fdx = ne.x - e.x;
+              const fdy = ne.y - e.y;
+              if (Math.sqrt(fdx*fdx + fdy*fdy) < 120) {
+                ne.speed = Math.max(0.2, ne.speed * 0.3);
+                createExplosion(ne.x, ne.y, 190, 5);
+              }
+            });
+          }
+
+          enemies.splice(ei, 1);
+          score += 10 * combo;
+          combo++;
+          comboTimer = 180;
+          power = Math.min(100, power + 8);
+
+          // Level up check
+          if (score > level * 500) {
+            level++;
+            kitsune.numTails = Math.min(9, 3 + Math.floor(level / 2));
+            enemySpeed += 0.15;
+            const lvl = document.getElementById('level-up');
+            lvl.textContent = `🌟 NIVEL ${level}! 🌟 ${kitsune.numTails} COLAS!`;
+            lvl.style.opacity = 1;
+            lvl.style.color = '#ffcc00';
+            setTimeout(() => { lvl.style.opacity = 0; }, 2000);
+          }
+
+          showCombo();
+        } else {
+          createExplosion(e.x, e.y, 60, 5);
+        }
+
+        // Pierce special: don't remove fireball, keep going
+        if (fb.piercing) {
+          hitSomething = false; // keep the fireball alive
+        } else {
+          hitSomething = true;
+        }
+        updateUI();
+        if (hitSomething) break;
+      }
+    }
+    if (hitSomething) fireballs.splice(fi, 1);
+  }
+
+  // Kitsune vs fruits - EAT the fruit and gain its power!
+  fruits.forEach((f, fi) => {
+    const dx = kitsune.x - f.x;
+    const dy = kitsune.y - f.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < kitsune.size + f.size) {
+      const d = f.fruitData;
+      score += d.points * combo;
+      power = Math.min(100, power + 12);
+      // Gain the fruit's power!
+      currentFruit = d;
+      showPowerup(`${d.emoji} ${d.name} Fruit! ${d.desc} ${d.emoji}`);
+      createExplosion(f.x, f.y, 120, 20);
+      screenShake = 6;
+      fruits.splice(fi, 1);
+      updateUI();
+    }
+  });
+
+  // Enemies vs kitsune
+  if (!superAttackActive) {
+    enemies.forEach((e, ei) => {
+      const dx = kitsune.x - e.x;
+      const dy = kitsune.y - e.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < kitsune.size + e.size * 0.5) {
+        health--;
+        createExplosion(kitsune.x, kitsune.y, 0, 20);
+        enemies.splice(ei, 1);
+        screenShake = 15;
+        combo = 1;
+        comboTimer = 0;
+        updateUI();
+
+        if (health <= 0) {
+          gameOver();
+        }
+      }
+    });
+  }
+}
+
+function showCombo() {
+  const el = document.getElementById('combo-display');
+  el.textContent = combo > 2 ? `x${combo} COMBO!` : '';
+  el.style.opacity = combo > 2 ? 1 : 0;
+  el.style.fontSize = Math.min(80 + combo * 5, 150) + 'px';
+  setTimeout(() => { el.style.opacity = 0; }, 800);
+}
+
+function showPowerup(text) {
+  const el = document.getElementById('powerup-msg');
+  el.textContent = text;
+  el.style.opacity = 1;
+  setTimeout(() => { el.style.opacity = 0; }, 1000);
+}
+
+function updateUI() {
+  document.getElementById('score').textContent = score;
+  document.getElementById('combo').textContent = `x${combo}`;
+  document.getElementById('power').textContent = Math.floor(power);
+  let hearts = '';
+  for (let i = 0; i < 5; i++) hearts += i < health ? '★' : '☆';
+  document.getElementById('health').textContent = hearts;
+  // Show current fruit power
+  const fb = document.getElementById('fruit-box');
+  if (currentFruit === kitsuneDefault) {
+    fb.textContent = '🦊 Kitsune';
+    fb.style.borderColor = '#00e5ff';
+    fb.style.boxShadow = '';
+  } else {
+    fb.textContent = `${currentFruit.emoji} ${currentFruit.name}`;
+    fb.style.borderColor = currentFruit.glow;
+    fb.style.boxShadow = `0 0 20px ${currentFruit.glow}55`;
+  }
+}
+
+function gameOver() {
+  gameStarted = false;
+  const ts = document.getElementById('title-screen');
+  ts.style.display = 'flex';
+  ts.querySelector('h2').textContent = `💀 GAME OVER - Puntos: ${score} 💀`;
+  ts.querySelector('.start-btn').textContent = '🔄 REINICIAR 🔄';
+}
+
+function update() {
+  if (!gameStarted) return;
+
+  // Move kitsune toward mouse
+  kitsune.targetX = mouseX;
+  kitsune.targetY = mouseY;
+  kitsune.x += (kitsune.targetX - kitsune.x) * 0.08;
+  kitsune.y += (kitsune.targetY - kitsune.y) * 0.08;
+
+  // Spawn enemies
+  spawnTimer++;
+  const spawnRate = Math.max(25, 150 - level * 12);
+  if (spawnTimer >= spawnRate) {
+    spawnEnemy();
+    spawnTimer = 0;
+  }
+
+  // Spawn fruits
+  fruitSpawnTimer++;
+  if (fruitSpawnTimer >= 200) {
+    spawnFruit();
+    fruitSpawnTimer = 0;
+  }
+
+  // Move enemies toward kitsune
+  enemies.forEach(e => {
+    const dx = kitsune.x - e.x;
+    const dy = kitsune.y - e.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist > 0) {
+      e.x += (dx / dist) * e.speed;
+      e.y += (dy / dist) * e.speed;
+    }
+  });
+
+  // Move fireballs (with bounce support)
+  for (let i = fireballs.length - 1; i >= 0; i--) {
+    const fb = fireballs[i];
+    fb.x += fb.vx;
+    fb.y += fb.vy;
+    fb.life--;
+
+    // Bounce off walls for rubber fruit
+    if (fb.bounces > 0) {
+      if (fb.x < 0 || fb.x > canvas.width) { fb.vx *= -1; fb.bounces--; createExplosion(fb.x, fb.y, 340, 5); }
+      if (fb.y < 0 || fb.y > canvas.height) { fb.vy *= -1; fb.bounces--; createExplosion(fb.x, fb.y, 340, 5); }
+    }
+
+    const oob = fb.bounces <= 0 && (fb.x < -50 || fb.x > canvas.width + 50 || fb.y < -50 || fb.y > canvas.height + 50);
+    if (fb.life <= 0 || oob) {
+      fireballs.splice(i, 1);
+    }
+  }
+
+
+  // Update particles
+  particles.forEach((p, i) => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vx *= 0.97;
+    p.vy *= 0.97;
+    p.life--;
+    if (p.life <= 0) particles.splice(i, 1);
+  });
+
+  // Fruit lifetime
+  fruits.forEach((f, i) => {
+    f.life--;
+    if (f.life <= 0) fruits.splice(i, 1);
+  });
+
+  // Combo decay
+  if (comboTimer > 0) {
+    comboTimer--;
+    if (comboTimer <= 0) {
+      combo = 1;
+      updateUI();
+    }
+  }
+
+  // Super attack timer
+  if (superAttackActive) {
+    superAttackTimer--;
+    if (superAttackTimer <= 0) superAttackActive = false;
+  }
+
+  // Screen shake decay
+  if (screenShake > 0) screenShake *= 0.9;
+  if (screenShake < 0.5) screenShake = 0;
+
+  // Background hue shift
+  bgHue += 0.05;
+
+  checkCollisions();
+}
+
+function draw() {
+  ctx.save();
+
+  // Screen shake
+  if (screenShake > 0) {
+    ctx.translate(
+      (Math.random() - 0.5) * screenShake,
+      (Math.random() - 0.5) * screenShake
+    );
+  }
+
+  drawBackground();
+
+  // Draw fruits
+  fruits.forEach(f => drawFruit(f));
+
+  // Draw enemies
+  enemies.forEach(e => drawEnemy(e));
+
+  // Draw fireballs
+  fireballs.forEach(fb => drawFireball(fb));
+
+  // Draw particles
+  particles.forEach(p => drawParticle(p));
+
+  // Draw kitsune
+  drawKitsune();
+
+  // Super attack wave - colored per fruit
+  if (superAttackActive) {
+    const cf = currentFruit;
+    const maxT = superAttackTimer > 120 ? 150 : 120;
+    const wave = (maxT - superAttackTimer) * 8;
+    const alpha = superAttackTimer / maxT * 0.5;
+    ctx.beginPath();
+    ctx.arc(kitsune.x, kitsune.y, wave, 0, Math.PI * 2);
+    ctx.strokeStyle = cf.glow + Math.round(alpha * 255).toString(16).padStart(2,'0');
+    ctx.lineWidth = 6;
+    ctx.shadowColor = cf.glow;
+    ctx.shadowBlur = 40;
+    ctx.stroke();
+    // Second inner ring
+    ctx.beginPath();
+    ctx.arc(kitsune.x, kitsune.y, wave * 0.6, 0, Math.PI * 2);
+    ctx.strokeStyle = cf.color2 + Math.round(alpha * 200).toString(16).padStart(2,'0');
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  // Draw cursor
+  drawCursor();
+
+  ctx.restore();
+}
+
+function gameLoop() {
+  update();
+  draw();
+  requestAnimationFrame(gameLoop);
+}
+
+function startGame() {
+  document.getElementById('title-screen').style.display = 'none';
+  gameStarted = true;
+  score = 0;
+  combo = 1;
+  power = 0;
+  health = 5;
+  level = 1;
+  enemySpeed = 0.5;
+  enemies = [];
+  fireballs = [];
+  fruits = [];
+  particles = [];
+  kitsune.numTails = 3;
+  kitsune.x = canvas.width / 2;
+  kitsune.y = canvas.height / 2;
+  spawnTimer = 0;
+  fruitSpawnTimer = 0;
+  currentFruit = kitsuneDefault;
+  updateUI();
+}
+
+// Start render loop
+gameLoop();
+</script>
+</body>
+</html>
