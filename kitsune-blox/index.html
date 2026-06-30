@@ -545,17 +545,17 @@ function spawnEnemy() {
 const bloxFruits = [
   // ===== SSS =====
   { name: 'Dragon',   emoji: '🐉', color1: '#00cc44', color2: '#66ff99', glow: '#00ff55',
-    attack: 'dragon',  desc: 'Aliento devastador!', speed: 7,  size: 28, count: 1, special: 'explode',   tier: 'SSS' },
+    attack: 'dragon',  desc: 'Aliento devastador!', speed: 7,  size: 28, count: 1, special: 'explode',   tier: 'SSS', beastForm: 'dragon' },
   { name: 'Leopard',  emoji: '🐆', color1: '#ff8800', color2: '#ffcc66', glow: '#ffaa00',
-    attack: 'leopard', desc: 'Garras letales!',     speed: 14, size: 10, count: 5, special: null,        tier: 'SSS' },
+    attack: 'leopard', desc: 'Garras letales!',     speed: 14, size: 10, count: 5, special: null,        tier: 'SSS', beastForm: 'leopard' },
   // ===== SS =====
   { name: 'Gas',      emoji: '💨', color1: '#33aa33', color2: '#aaff66', glow: '#66ff33',
     attack: 'dark',    desc: 'Nube toxica!',         speed: 9,  size: 24, count: 1, special: 'pierce',    tier: 'SS' },
   // ===== S+ =====
   { name: 'Mammoth',  emoji: '🦣', color1: '#8844cc', color2: '#cc99ff', glow: '#aa66ff',
-    attack: 'dragon',  desc: 'Pisoton sismico!',     speed: 6,  size: 30, count: 1, special: 'shockwave', tier: 'S+' },
+    attack: 'dragon',  desc: 'Pisoton sismico!',     speed: 6,  size: 30, count: 1, special: 'shockwave', tier: 'S+', beastForm: 'dragon' },
   { name: 'T-Rex',    emoji: '🦖', color1: '#aa5522', color2: '#ee9955', glow: '#cc7733',
-    attack: 'dragon',  desc: 'Mordida brutal!',      speed: 8,  size: 26, count: 1, special: 'explode',   tier: 'S+' },
+    attack: 'dragon',  desc: 'Mordida brutal!',      speed: 8,  size: 26, count: 1, special: 'explode',   tier: 'S+', beastForm: 'dragon' },
   // ===== S- =====
   { name: 'Dough',    emoji: '🍩', color1: '#ddaa55', color2: '#ffe0a0', glow: '#ffcc66',
     attack: 'rubber',  desc: 'Golpe de masa!',       speed: 10, size: 18, count: 2, special: 'bounce',    tier: 'S-' },
@@ -575,7 +575,7 @@ const bloxFruits = [
   { name: 'Buddha',   emoji: '🟡', color1: '#ffcc00', color2: '#ffffaa', glow: '#ffdd33',
     attack: 'buddha',  desc: 'Palma divina!',        speed: 6,  size: 35, count: 1, special: 'shockwave', tier: 'B-' },
   { name: 'Phoenix',  emoji: '🔥', color1: '#ff5500', color2: '#ffcc44', glow: '#ff8800',
-    attack: 'flame',   desc: 'Llamas renacientes!',  speed: 12, size: 16, count: 2, special: null,        tier: 'B-' },
+    attack: 'flame',   desc: 'Llamas renacientes!',  speed: 12, size: 16, count: 2, special: null,        tier: 'B-', beastForm: 'flame' },
   { name: 'Rumble',   emoji: '⚡', color1: '#ddcc00', color2: '#ffff88', glow: '#ffee33',
     attack: 'light',   desc: 'Trueno electrico!',    speed: 18, size: 12, count: 2, special: null,        tier: 'B-' },
   { name: 'Blizzard', emoji: '🌨️', color1: '#33aadd', color2: '#cceeff', glow: '#66ccff',
@@ -599,6 +599,8 @@ const bloxFruits = [
     attack: 'light',   desc: 'Onda sonora!',         speed: 15, size: 12, count: 3, special: null,        tier: 'C' },
   { name: 'Ghost',    emoji: '👻', color1: '#556677', color2: '#aabbcc', glow: '#88aacc',
     attack: 'dark',    desc: 'Posesion!',            speed: 11, size: 18, count: 2, special: 'pierce',    tier: 'C' },
+  { name: 'Barrier',  emoji: '🛡️', color1: '#88aa33', color2: '#ddff88', glow: '#aacc44',
+    attack: 'buddha',  desc: 'Muro defensivo!',      speed: 8,  size: 24, count: 1, special: 'shockwave', tier: 'C' },
   // ===== Pain / Gravity =====
   { name: 'Pain',     emoji: '🩸', color1: '#990022', color2: '#dd4466', glow: '#cc2244',
     attack: 'dark',    desc: 'Sello de dolor!',      speed: 10, size: 18, count: 1, special: 'pierce',    tier: 'PG' },
@@ -632,6 +634,10 @@ const bloxFruits = [
     attack: 'light',   desc: 'Corte de espada!',     speed: 16, size: 11, count: 1, special: null,        tier: 'F' },
   { name: 'Rocket',   emoji: '🚀', color1: '#bb3322', color2: '#ee8866', glow: '#dd5533',
     attack: 'flame',   desc: 'Cohete!',              speed: 14, size: 13, count: 1, special: null,        tier: 'F' },
+  { name: 'Chop',     emoji: '🔪', color1: '#aaaaaa', color2: '#eeeeee', glow: '#cccccc',
+    attack: 'leopard', desc: 'Cuchillas!',           speed: 14, size: 10, count: 3, special: null,        tier: 'F' },
+  { name: 'Spin',     emoji: '🌀', color1: '#cc8844', color2: '#ffccaa', glow: '#eeaa66',
+    attack: 'rubber',  desc: 'Giro cortante!',       speed: 12, size: 12, count: 1, special: 'bounce',    tier: 'F' },
 ];
 
 // Tablas por tier: arriba en el tier list => menos probabilidad (weight) y mas poder.
@@ -711,27 +717,19 @@ function drawKitsune() {
   ctx.fillStyle = glowGrad;
   ctx.fillRect(-80, -50, 160, 130);
 
-  // ===== TRANSFORMATIONS PER FRUIT =====
-  const atk = cf.attack;
-
-  if (atk === 'kitsune') {
+  // ===== TRANSFORMATIONS =====
+  // Default = espiritu Kitsune (zorro). Frutas tipo BESTIA = su transformacion animal.
+  // Todas las demas frutas (no-bestia) = el personaje humano, sin transformarse en bestia.
+  if (cf === kitsuneDefault) {
     drawFormKitsune(k, lb);
-  } else if (atk === 'flame') {
-    drawFormFlame(k, lb);
-  } else if (atk === 'ice') {
-    drawFormIce(k, lb);
-  } else if (atk === 'dark') {
-    drawFormDark(k, lb);
-  } else if (atk === 'light') {
-    drawFormLight(k, lb);
-  } else if (atk === 'rubber') {
-    drawFormRubber(k, lb);
-  } else if (atk === 'dragon') {
+  } else if (cf.beastForm === 'dragon') {
     drawFormDragon(k, lb);
-  } else if (atk === 'leopard') {
+  } else if (cf.beastForm === 'leopard') {
     drawFormLeopard(k, lb);
-  } else if (atk === 'buddha') {
-    drawFormBuddha(k, lb);
+  } else if (cf.beastForm === 'flame') {
+    drawFormFlame(k, lb);
+  } else {
+    drawFormHuman(k, lb, cf);
   }
 
   ctx.restore();
@@ -787,6 +785,126 @@ function drawLegs(color, glowColor, lb, frontX, backX, topY, len) {
   ctx.fillRect(frontX - 1, topY + len + lb, 8, 4); ctx.fillRect(frontX + 9, topY + len - lb, 8, 4);
   ctx.fillRect(backX - 1, topY + len - 4 - lb, 8, 4); ctx.fillRect(backX + 7, topY + len - 4 + lb, 8, 4);
   ctx.shadowBlur = 0;
+}
+
+// ====== FORM: HUMAN (personaje de la imagen) ======
+// Frutas NO-bestia muestran este avatar humanoide estilo Roblox en vez de
+// transformarse en una bestia. Solo cambia el aura segun el color de la fruta.
+function drawFormHuman(k, lb, cf) {
+  const glow = cf.glow || '#9b4dff';
+  const skin = '#8a5a3b', skinDark = '#6b4329', skinHi = '#a06f48';
+  const robe = '#16151b', robeHi = '#2c2a33';
+  const hair = '#f2f2f0', hairSh = '#c9c9cf';
+  const horn = '#241f1a', hornHi = '#4a4038';
+  const lbA = lb * 0.6;
+
+  // --- Robe / coat detras (con borde de aura del color de la fruta) ---
+  ctx.fillStyle = robe;
+  ctx.shadowColor = glow; ctx.shadowBlur = 18;
+  // panel izquierdo y derecho colgando
+  ctx.beginPath();
+  ctx.moveTo(-12, -22); ctx.lineTo(-30, -16); ctx.lineTo(-26, 34); ctx.lineTo(-6, 30);
+  ctx.lineTo(-6, -18); ctx.closePath(); ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(12, -22); ctx.lineTo(30, -16); ctx.lineTo(26, 34); ctx.lineTo(6, 30);
+  ctx.lineTo(6, -18); ctx.closePath(); ctx.fill();
+  ctx.shadowBlur = 0;
+  // pelaje blanco en los bordes del abrigo
+  ctx.strokeStyle = hairSh; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(-30, -16); ctx.lineTo(-26, 34); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(30, -16); ctx.lineTo(26, 34); ctx.stroke();
+
+  // --- Piernas (negras, con borde de piel arriba) ---
+  ctx.fillStyle = robe;
+  ctx.fillRect(-11, 16, 9, 24 + lbA);   // pierna izq
+  ctx.fillRect(3, 16, 9, 24 - lbA);     // pierna der
+  ctx.fillStyle = skinDark;             // borde de muslo
+  ctx.fillRect(-11, 16, 9, 4); ctx.fillRect(3, 16, 9, 4);
+  ctx.fillStyle = hairSh;               // pelaje en tobillos
+  ctx.fillRect(-12, 36 + lbA, 11, 5); ctx.fillRect(2, 36 - lbA, 11, 5);
+
+  // --- Torso (pecho marron musculoso) ---
+  const tg = ctx.createLinearGradient(-16, -20, 16, 14);
+  tg.addColorStop(0, skinHi); tg.addColorStop(0.5, skin); tg.addColorStop(1, skinDark);
+  ctx.fillStyle = tg;
+  ctx.beginPath();
+  ctx.moveTo(-15, -19); ctx.lineTo(15, -19);
+  ctx.quadraticCurveTo(18, -4, 13, 14); ctx.lineTo(-13, 14);
+  ctx.quadraticCurveTo(-18, -4, -15, -19); ctx.closePath(); ctx.fill();
+  // definicion muscular
+  ctx.strokeStyle = skinDark; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(0, -14); ctx.lineTo(0, 8); ctx.stroke();        // linea central
+  ctx.beginPath(); ctx.arc(-6, -8, 6, -0.4, 1.2); ctx.stroke();              // pec izq
+  ctx.beginPath(); ctx.arc(6, -8, 6, 2, 3.6); ctx.stroke();                  // pec der
+  ctx.beginPath(); ctx.moveTo(-8, 2); ctx.lineTo(8, 2); ctx.stroke();        // abs
+  ctx.beginPath(); ctx.moveTo(-8, 8); ctx.lineTo(8, 8); ctx.stroke();
+
+  // --- Cinturon / faja gris ---
+  ctx.fillStyle = '#3a3a40'; ctx.fillRect(-14, 13, 28, 6);
+  ctx.fillStyle = hairSh;
+  for (let i = -12; i < 14; i += 6) ctx.fillRect(i, 18, 4, 3);
+
+  // --- Brazos (manga negra + antebrazo marron) ---
+  for (const s of [-1, 1]) {
+    const ax = s * 22, bob = s === -1 ? lbA : -lbA;
+    ctx.fillStyle = robe;                 // manga
+    ctx.fillRect(ax - 6, -19 + bob, 12, 22);
+    ctx.fillStyle = skin;                 // antebrazo
+    ctx.fillRect(ax - 5, 3 + bob, 10, 14);
+    ctx.fillStyle = skinDark;             // mano
+    ctx.fillRect(ax - 5, 15 + bob, 10, 6);
+    ctx.strokeStyle = hairSh; ctx.lineWidth = 2;  // pelaje hombro
+    ctx.beginPath(); ctx.moveTo(ax - 6, -19 + bob); ctx.lineTo(ax + 6, -19 + bob); ctx.stroke();
+  }
+
+  // --- Cuello + collar/colgante ---
+  ctx.fillStyle = skin; ctx.fillRect(-5, -25, 10, 8);
+  ctx.strokeStyle = '#888'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(0, -19, 9, 0.2, Math.PI - 0.2); ctx.stroke();  // cadena
+  ctx.beginPath(); ctx.ellipse(0, -10, 4, 6, 0, 0, Math.PI * 2);          // gema
+  ctx.fillStyle = '#111'; ctx.fill();
+  ctx.fillStyle = glow; ctx.shadowColor = glow; ctx.shadowBlur = 10;
+  ctx.beginPath(); ctx.arc(0, -11, 2, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+
+  // --- Cabeza ---
+  const hg = ctx.createLinearGradient(-12, -46, 12, -24);
+  hg.addColorStop(0, skinHi); hg.addColorStop(1, skin);
+  ctx.fillStyle = hg;
+  ctx.beginPath(); ctx.moveTo(-11, -44);
+  ctx.lineTo(11, -44); ctx.quadraticCurveTo(13, -33, 9, -25);
+  ctx.lineTo(-9, -25); ctx.quadraticCurveTo(-13, -33, -11, -44); ctx.closePath(); ctx.fill();
+
+  // --- Cuernos (oscuros, curvados hacia arriba) ---
+  for (const s of [-1, 1]) {
+    ctx.beginPath();
+    ctx.moveTo(s * 9, -42);
+    ctx.quadraticCurveTo(s * 20, -52, s * 17, -70);
+    ctx.quadraticCurveTo(s * 14, -54, s * 4, -44);
+    ctx.closePath();
+    const cg = ctx.createLinearGradient(s * 4, -44, s * 17, -70);
+    cg.addColorStop(0, hornHi); cg.addColorStop(1, horn);
+    ctx.fillStyle = cg; ctx.fill();
+    ctx.strokeStyle = horn; ctx.lineWidth = 1; ctx.stroke();
+  }
+
+  // --- Pelo blanco puntiagudo ---
+  ctx.fillStyle = hair; ctx.shadowColor = hairSh; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  ctx.moveTo(-13, -38);
+  ctx.lineTo(-15, -52); ctx.lineTo(-7, -46);
+  ctx.lineTo(-9, -60); ctx.lineTo(-1, -48);
+  ctx.lineTo(2, -62); ctx.lineTo(7, -47);
+  ctx.lineTo(12, -56); ctx.lineTo(12, -44);
+  ctx.lineTo(14, -46); ctx.lineTo(13, -36);
+  ctx.quadraticCurveTo(0, -44, -13, -38); ctx.closePath(); ctx.fill();
+  ctx.shadowBlur = 0;
+  // mechones de sombra
+  ctx.strokeStyle = hairSh; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(-6, -42); ctx.lineTo(-8, -52); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(3, -42); ctx.lineTo(2, -54); ctx.stroke();
+
+  // --- Ojos brillantes con el color de la fruta ---
+  drawEyes(-5, -34, 5, -34, glow, 3);
 }
 
 // ====== FORM: KITSUNE (default) ======
