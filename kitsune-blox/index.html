@@ -153,22 +153,27 @@
 <div id="title-screen">
   <h1>🦊 KITSUNE FRUIT 🦊</h1>
   <h2>⚡ Blox Fruits ⚡</h2>
-  <button class="start-btn" onclick="startGame()">🎮 JUGAR 🎮</button>
-  <div class="instructions">
-    🖱️ Mueve el mouse para controlar la Kitsune<br>
-    🔥 Click para atacar con tu poder actual<br>
-    🍎 Come frutas Blox para obtener sus poderes!<br>
-    ❄️🔥🌑✨🟣🐉🐆🟡 Cada fruta = ataque unico!<br>
-    💜 Espacio = SUPER ATAQUE KITSUNE (barra llena)
+  <button class="start-btn" id="play-btn" onclick="showPlayerSelect()">🎮 JUGAR 🎮</button>
+  <div id="player-select" style="display:none;flex-direction:column;align-items:center;gap:10px;">
+    <div style="font-size:24px;color:#fff;text-shadow:0 0 10px #00e5ff;">¿Cuántos jugadores?</div>
+    <button class="start-btn" onclick="startGame(1)">👤 1 Jugador</button>
+    <button class="start-btn" onclick="startGame(2)">👥 2 Jugadores</button>
+    <button class="start-btn" onclick="startGame(3)">👨‍👩‍👦 3 Jugadores</button>
+  </div>
+  <div class="instructions" id="instructions">
+    🖱️ 1 jugador: mueve el mouse, click para atacar, Espacio = súper<br>
+    ⌨️ 2-3 jugadores (cada uno con su parte del teclado):<br>
+    🦣 P1: mover WASD · disparar F · súper G<br>
+    🦊 P2: mover Flechas · disparar . · súper /<br>
+    ❄️ P3: mover IJKL · disparar U · súper O<br>
+    🍎 Come frutas Blox para cambiar tu poder!
   </div>
 </div>
 
 <div id="ui">
   <div class="stat-box">⭐ Puntos: <span id="score">0</span></div>
   <div class="stat-box">🔥 Combo: <span id="combo">x1</span></div>
-  <div class="stat-box" id="fruit-box">🦊 Kitsune</div>
-  <div class="stat-box">💜 Power: <span id="power">0</span>%</div>
-  <div class="stat-box">❤️ Vida: <span id="health">★★★★★</span></div>
+  <div id="players-ui" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
 </div>
 
 <div id="combo-display"></div>
@@ -229,8 +234,60 @@ for (let i = 0; i < 200; i++) {
   });
 }
 
-// Kitsune object
-const kitsune = {
+// ===== MULTIPLAYER =====
+// El jugador "activo" se refleja en los globales kitsune/currentFruit/power/health/super*
+// para reutilizar el codigo de dibujo y super-ataques sin reescribirlo.
+let numPlayers = 1;
+let players = [];
+const keys = new Set();
+
+// Configuracion de controles por jugador (codigos de e.code)
+const PLAYER_CONTROLS = [
+  { up: 'KeyW', down: 'KeyS', left: 'KeyA', right: 'KeyD', shoot: 'KeyF', sup: 'KeyG' },
+  { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', shoot: 'Period', sup: 'Slash' },
+  { up: 'KeyI', down: 'KeyK', left: 'KeyJ', right: 'KeyL', shoot: 'KeyU', sup: 'KeyO' },
+];
+const PLAYER_LABELS = ['P1', 'P2', 'P3'];
+
+function getFruitByName(name) {
+  if (name === 'Kitsune') return kitsuneDefault;
+  return bloxFruits.find(f => f.name === name) || kitsuneDefault;
+}
+
+function makePlayer(id, fruit, x) {
+  return {
+    id, label: PLAYER_LABELS[id], controls: PLAYER_CONTROLS[id],
+    x, y: canvas.height / 2, targetX: x + 100, targetY: canvas.height / 2,
+    vx: 0, vy: 0, facing: 1,
+    size: 40, tailPhase: 0, numTails: 3, eyeGlow: 0, breathPhase: 0,
+    fruit, power: 0, health: 5, alive: true,
+    superActive: false, superTimer: 0, superType: 'kitsune',
+    shootCD: 0
+  };
+}
+
+// Copia jugador -> globales (para que el codigo existente opere sobre el)
+function bindPlayer(p) {
+  kitsune = p;
+  currentFruit = p.fruit;
+  power = p.power;
+  health = p.health;
+  superAttackActive = p.superActive;
+  superAttackTimer = p.superTimer;
+  superAttackType = p.superType;
+}
+// Escribe los globales de vuelta al jugador
+function commitPlayer(p) {
+  p.fruit = currentFruit;
+  p.power = power;
+  p.health = health;
+  p.superActive = superAttackActive;
+  p.superTimer = superAttackTimer;
+  p.superType = superAttackType;
+}
+
+// Kitsune object (jugador activo; reasignado por bindPlayer)
+let kitsune = {
   x: canvas.width / 2,
   y: canvas.height / 2,
   targetX: canvas.width / 2,
@@ -253,75 +310,90 @@ document.addEventListener('mousemove', (e) => {
   mouseY = e.clientY;
 });
 
-// Shooting
+// Disparo con click = jugador 1 (apunta al click)
 canvas.addEventListener('click', (e) => {
   if (!gameStarted) return;
-  shootFireball(e.clientX, e.clientY);
+  const p = players[0];
+  if (p && p.alive) shootFireball(p, e.clientX, e.clientY);
 });
 
-// Super attack
+// Teclado: movimiento (mantener) + super (al presionar). El disparo se procesa en update().
 document.addEventListener('keydown', (e) => {
-  if (e.code === 'Space' && gameStarted && power >= 100) {
+  keys.add(e.code);
+  if (!gameStarted) return;
+  // 1 jugador clasico: Espacio = super del jugador 1
+  if (e.code === 'Space') {
     e.preventDefault();
-    activateSuperAttack();
+    const p = players[0];
+    if (p && p.alive && p.power >= 100) activateSuperAttackFor(p);
+    return;
   }
+  // Cada jugador con su tecla de super
+  players.forEach(p => {
+    if (p.alive && e.code === p.controls.sup && p.power >= 100) {
+      e.preventDefault();
+      activateSuperAttackFor(p);
+    }
+  });
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) e.preventDefault();
 });
+document.addEventListener('keyup', (e) => { keys.delete(e.code); });
 
-function shootFireball(tx, ty) {
-  const cf = currentFruit;
+function shootFireball(p, aimX, aimY) {
+  const cf = p.fruit;
 
-  // Auto-aim: find nearest enemy and shoot at it
-  let targetX = tx, targetY = ty;
+  // Auto-aim: enemigo mas cercano; si no hay, usa el click o la direccion encarada
+  let targetX, targetY;
   if (enemies.length > 0) {
-    let nearest = null;
-    let nearestDist = Infinity;
+    let nearest = null, nearestDist = Infinity;
     enemies.forEach(e => {
-      const dx = e.x - kitsune.x;
-      const dy = e.y - kitsune.y;
+      const dx = e.x - p.x, dy = e.y - p.y;
       const d = Math.sqrt(dx * dx + dy * dy);
       if (d < nearestDist) { nearestDist = d; nearest = e; }
     });
-    if (nearest) { targetX = nearest.x; targetY = nearest.y; }
+    targetX = nearest.x; targetY = nearest.y;
+  } else if (aimX != null) {
+    targetX = aimX; targetY = aimY;
+  } else {
+    targetX = p.x + p.facing * 200; targetY = p.y;
   }
 
-  const baseAngle = Math.atan2(targetY - kitsune.y, targetX - kitsune.x);
+  const baseAngle = Math.atan2(targetY - p.y, targetX - p.x);
 
   for (let i = 0; i < cf.count; i++) {
-    // Spread shots if count > 1
     const spread = cf.count > 1 ? ((i - (cf.count - 1) / 2) * 0.15) : 0;
     const angle = baseAngle + spread;
-
     fireballs.push({
-      x: kitsune.x,
-      y: kitsune.y,
+      x: p.x, y: p.y,
       vx: Math.cos(angle) * cf.speed,
       vy: Math.sin(angle) * cf.speed,
-      size: cf.size,
-      life: 90,
-      fruit: cf,
+      size: cf.size, life: 90, fruit: cf, owner: p.id,
       phase: 0,
       bounces: cf.special === 'bounce' ? 3 : 0,
       piercing: cf.special === 'pierce'
     });
   }
 
-  // Recoil particles in fruit color
+  // Recoil particles
   for (let i = 0; i < 5; i++) {
     particles.push({
-      x: kitsune.x,
-      y: kitsune.y,
+      x: p.x, y: p.y,
       vx: -Math.cos(baseAngle) * (Math.random() * 3 + 1),
       vy: -Math.sin(baseAngle) * (Math.random() * 3 + 1),
-      size: Math.random() * 6 + 2,
-      life: 20,
-      color: cf.color1,
-      hue: 0,
-      type: 'spark'
+      size: Math.random() * 6 + 2, life: 20,
+      color: cf.color1, hue: 0, type: 'spark'
     });
   }
 }
 
 let superAttackType = 'kitsune';
+
+// Ejecuta el super del jugador dado reutilizando el codigo basado en globales.
+function activateSuperAttackFor(p) {
+  bindPlayer(p);
+  activateSuperAttack();
+  commitPlayer(p);
+}
 
 function activateSuperAttack() {
   superAttackActive = true;
@@ -1970,15 +2042,18 @@ function checkCollisions() {
           score += 10 * combo;
           combo++;
           comboTimer = 180;
-          power = Math.min(100, power + 8);
+          // El poder va al jugador dueño del proyectil
+          const owner = players[fb.owner];
+          if (owner) owner.power = Math.min(100, owner.power + 8);
 
           // Level up check
           if (score > level * 500) {
             level++;
-            kitsune.numTails = Math.min(9, 3 + Math.floor(level / 2));
+            const nt = Math.min(9, 3 + Math.floor(level / 2));
+            players.forEach(pp => pp.numTails = nt);
             enemySpeed += 0.15;
             const lvl = document.getElementById('level-up');
-            lvl.textContent = `🌟 NIVEL ${level}! 🌟 ${kitsune.numTails} COLAS!`;
+            lvl.textContent = `🌟 NIVEL ${level}! 🌟 ${nt} COLAS!`;
             lvl.style.opacity = 1;
             lvl.style.color = '#ffcc00';
             setTimeout(() => { lvl.style.opacity = 0; }, 2000);
@@ -2002,46 +2077,49 @@ function checkCollisions() {
     if (hitSomething) fireballs.splice(fi, 1);
   }
 
-  // Kitsune vs fruits - EAT the fruit and gain its power!
-  fruits.forEach((f, fi) => {
-    const dx = kitsune.x - f.x;
-    const dy = kitsune.y - f.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist < kitsune.size + f.size) {
-      const d = f.fruitData;
-      score += d.points * combo;
-      power = Math.min(100, power + 12);
-      // Gain the fruit's power!
-      currentFruit = d;
-      showPowerup(`${d.emoji} [${tierLabel(d.tier)}] ${d.name} Fruit! ${d.desc} ${d.emoji}`);
-      createExplosion(f.x, f.y, 120, 20);
-      screenShake = 6;
-      fruits.splice(fi, 1);
-      updateUI();
+  // Jugadores comen frutas y ganan su poder
+  for (let fi = fruits.length - 1; fi >= 0; fi--) {
+    const f = fruits[fi];
+    for (const p of players) {
+      if (!p.alive) continue;
+      const dx = p.x - f.x, dy = p.y - f.y;
+      if (Math.sqrt(dx * dx + dy * dy) < p.size + f.size) {
+        const d = f.fruitData;
+        score += d.points * combo;
+        p.power = Math.min(100, p.power + 12);
+        p.fruit = d;
+        showPowerup(`${p.label}: ${d.emoji} [${tierLabel(d.tier)}] ${d.name}! ${d.desc}`);
+        createExplosion(f.x, f.y, 120, 20);
+        screenShake = 6;
+        fruits.splice(fi, 1);
+        updateUI();
+        break;
+      }
     }
-  });
+  }
 
-  // Enemies vs kitsune
-  if (!superAttackActive) {
-    enemies.forEach((e, ei) => {
-      const dx = kitsune.x - e.x;
-      const dy = kitsune.y - e.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < kitsune.size + e.size * 0.5) {
-        health--;
-        createExplosion(kitsune.x, kitsune.y, 0, 20);
+  // Enemigos golpean jugadores (cada uno con su vida; invulnerable durante su super)
+  enemies.forEach((e, ei) => {
+    for (const p of players) {
+      if (!p.alive || p.superActive) continue;
+      const dx = p.x - e.x, dy = p.y - e.y;
+      if (Math.sqrt(dx * dx + dy * dy) < p.size + e.size * 0.5) {
+        p.health--;
+        createExplosion(p.x, p.y, 0, 20);
         enemies.splice(ei, 1);
         screenShake = 15;
         combo = 1;
         comboTimer = 0;
-        updateUI();
-
-        if (health <= 0) {
-          gameOver();
+        if (p.health <= 0) {
+          p.alive = false;
+          createExplosion(p.x, p.y, 0, 40);
+          if (players.every(pl => !pl.alive)) gameOver();
         }
+        updateUI();
+        break;
       }
-    });
-  }
+    }
+  });
 }
 
 function showCombo() {
@@ -2062,21 +2140,24 @@ function showPowerup(text) {
 function updateUI() {
   document.getElementById('score').textContent = score;
   document.getElementById('combo').textContent = `x${combo}`;
-  document.getElementById('power').textContent = Math.floor(power);
-  let hearts = '';
-  for (let i = 0; i < 5; i++) hearts += i < health ? '★' : '☆';
-  document.getElementById('health').textContent = hearts;
-  // Show current fruit power
-  const fb = document.getElementById('fruit-box');
-  if (currentFruit === kitsuneDefault) {
-    fb.textContent = '🦊 Kitsune';
-    fb.style.borderColor = '#00e5ff';
-    fb.style.boxShadow = '';
-  } else {
-    fb.textContent = `${currentFruit.emoji} ${currentFruit.name}`;
-    fb.style.borderColor = currentFruit.glow;
-    fb.style.boxShadow = `0 0 20px ${currentFruit.glow}55`;
-  }
+  const cont = document.getElementById('players-ui');
+  cont.innerHTML = '';
+  players.forEach(p => {
+    const f = p.fruit;
+    const name = f === kitsuneDefault ? 'Kitsune' : f.name;
+    const emoji = f.emoji || '🦊';
+    const glow = f.glow || '#00e5ff';
+    let hearts = '';
+    for (let i = 0; i < 5; i++) hearts += i < p.health ? '★' : '☆';
+    const box = document.createElement('div');
+    box.className = 'stat-box';
+    box.style.borderColor = p.alive ? glow : '#552222';
+    box.style.boxShadow = p.alive ? `0 0 16px ${glow}55` : 'none';
+    box.style.opacity = p.alive ? '1' : '0.45';
+    const tag = numPlayers > 1 ? `<b>${p.label}</b> ` : '';
+    box.innerHTML = `${tag}${emoji} ${name}<br>${p.alive ? hearts : '💀'} · 💜 ${Math.floor(p.power)}%`;
+    cont.appendChild(box);
+  });
 }
 
 function gameOver() {
@@ -2084,17 +2165,60 @@ function gameOver() {
   const ts = document.getElementById('title-screen');
   ts.style.display = 'flex';
   ts.querySelector('h2').textContent = `💀 GAME OVER - Puntos: ${score} 💀`;
-  ts.querySelector('.start-btn').textContent = '🔄 REINICIAR 🔄';
+  const playBtn = document.getElementById('play-btn');
+  playBtn.textContent = '🔄 JUGAR DE NUEVO 🔄';
+  playBtn.style.display = '';
+  document.getElementById('instructions').style.display = '';
+  document.getElementById('player-select').style.display = 'none';
+}
+
+function showPlayerSelect() {
+  document.getElementById('play-btn').style.display = 'none';
+  document.getElementById('instructions').style.display = 'none';
+  document.getElementById('player-select').style.display = 'flex';
+}
+
+function updatePlayers() {
+  const groundY = canvas.height - 60;
+  players.forEach(p => {
+    if (!p.alive) return;
+    if (numPlayers === 1) {
+      // Jugador 1: sigue el mouse (control clasico)
+      p.targetX = mouseX; p.targetY = mouseY;
+      p.x += (p.targetX - p.x) * 0.08;
+      p.y += (p.targetY - p.y) * 0.08;
+      if (mouseX > p.x + 2) p.facing = 1; else if (mouseX < p.x - 2) p.facing = -1;
+    } else {
+      // Multijugador: teclado
+      const c = p.controls;
+      let ax = 0, ay = 0;
+      if (keys.has(c.left)) ax -= 1;
+      if (keys.has(c.right)) ax += 1;
+      if (keys.has(c.up)) ay -= 1;
+      if (keys.has(c.down)) ay += 1;
+      const SP = 5;
+      p.x += ax * SP; p.y += ay * SP;
+      if (ax > 0) p.facing = 1; else if (ax < 0) p.facing = -1;
+      p.targetX = p.x + p.facing * 100; p.targetY = p.y;
+      // Disparo manteniendo la tecla
+      if (keys.has(c.shoot) && p.shootCD <= 0) { shootFireball(p); p.shootCD = 12; }
+    }
+    if (p.shootCD > 0) p.shootCD--;
+    // Limites del area
+    p.x = Math.max(40, Math.min(canvas.width - 40, p.x));
+    p.y = Math.max(40, Math.min(groundY, p.y));
+    // Timer del super del jugador
+    if (p.superActive) {
+      p.superTimer--;
+      if (p.superTimer <= 0) p.superActive = false;
+    }
+  });
 }
 
 function update() {
   if (!gameStarted) return;
 
-  // Move kitsune toward mouse
-  kitsune.targetX = mouseX;
-  kitsune.targetY = mouseY;
-  kitsune.x += (kitsune.targetX - kitsune.x) * 0.08;
-  kitsune.y += (kitsune.targetY - kitsune.y) * 0.08;
+  updatePlayers();
 
   // Spawn enemies
   spawnTimer++;
@@ -2111,10 +2235,15 @@ function update() {
     fruitSpawnTimer = 0;
   }
 
-  // Move enemies toward kitsune
+  // Move enemies toward nearest alive player
   enemies.forEach(e => {
-    const dx = kitsune.x - e.x;
-    const dy = kitsune.y - e.y;
+    let tx = canvas.width / 2, ty = canvas.height / 2, best = Infinity;
+    players.forEach(p => {
+      if (!p.alive) return;
+      const d = (p.x - e.x) ** 2 + (p.y - e.y) ** 2;
+      if (d < best) { best = d; tx = p.x; ty = p.y; }
+    });
+    const dx = tx - e.x, dy = ty - e.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
     if (dist > 0) {
       e.x += (dx / dist) * e.speed;
@@ -2167,11 +2296,7 @@ function update() {
     }
   }
 
-  // Super attack timer
-  if (superAttackActive) {
-    superAttackTimer--;
-    if (superAttackTimer <= 0) superAttackActive = false;
-  }
+  // (el timer de super se maneja por jugador en updatePlayers)
 
   // Screen shake decay
   if (screenShake > 0) screenShake *= 0.9;
@@ -2208,33 +2333,30 @@ function draw() {
   // Draw particles
   particles.forEach(p => drawParticle(p));
 
-  // Draw kitsune
-  drawKitsune();
+  // Draw players (cada jugador + su onda de super)
+  players.forEach(p => {
+    if (!p.alive) return;
+    bindPlayer(p);
+    drawKitsune();
+    if (p.superActive) {
+      const cf = p.fruit;
+      const maxT = p.superTimer > 120 ? 150 : 120;
+      const wave = (maxT - p.superTimer) * 8;
+      const alpha = p.superTimer / maxT * 0.5;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, wave, 0, Math.PI * 2);
+      ctx.strokeStyle = cf.glow + Math.round(alpha * 255).toString(16).padStart(2,'0');
+      ctx.lineWidth = 6; ctx.shadowColor = cf.glow; ctx.shadowBlur = 40; ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, wave * 0.6, 0, Math.PI * 2);
+      ctx.strokeStyle = cf.color2 + Math.round(alpha * 200).toString(16).padStart(2,'0');
+      ctx.lineWidth = 3; ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+  });
 
-  // Super attack wave - colored per fruit
-  if (superAttackActive) {
-    const cf = currentFruit;
-    const maxT = superAttackTimer > 120 ? 150 : 120;
-    const wave = (maxT - superAttackTimer) * 8;
-    const alpha = superAttackTimer / maxT * 0.5;
-    ctx.beginPath();
-    ctx.arc(kitsune.x, kitsune.y, wave, 0, Math.PI * 2);
-    ctx.strokeStyle = cf.glow + Math.round(alpha * 255).toString(16).padStart(2,'0');
-    ctx.lineWidth = 6;
-    ctx.shadowColor = cf.glow;
-    ctx.shadowBlur = 40;
-    ctx.stroke();
-    // Second inner ring
-    ctx.beginPath();
-    ctx.arc(kitsune.x, kitsune.y, wave * 0.6, 0, Math.PI * 2);
-    ctx.strokeStyle = cf.color2 + Math.round(alpha * 200).toString(16).padStart(2,'0');
-    ctx.lineWidth = 3;
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-  }
-
-  // Draw cursor
-  drawCursor();
+  // Draw cursor (solo util para el jugador 1 con mouse)
+  if (numPlayers === 1) drawCursor();
 
   ctx.restore();
 }
@@ -2245,25 +2367,35 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-function startGame() {
+// Frutas iniciales segun el numero de jugadores
+const START_FRUITS = {
+  1: ['Kitsune'],
+  2: ['Mammoth', 'Kitsune'],
+  3: ['Mammoth', 'Kitsune', 'Yeti'],
+};
+
+function startGame(n) {
+  numPlayers = n || 1;
   document.getElementById('title-screen').style.display = 'none';
   gameStarted = true;
   score = 0;
   combo = 1;
-  power = 0;
-  health = 5;
   level = 1;
   enemySpeed = 0.5;
   enemies = [];
   fireballs = [];
   fruits = [];
   particles = [];
-  kitsune.numTails = 3;
-  kitsune.x = canvas.width / 2;
-  kitsune.y = canvas.height / 2;
   spawnTimer = 0;
   fruitSpawnTimer = 0;
-  currentFruit = kitsuneDefault;
+
+  const starts = START_FRUITS[numPlayers] || START_FRUITS[1];
+  const gap = canvas.width / (numPlayers + 1);
+  players = [];
+  for (let i = 0; i < numPlayers; i++) {
+    players.push(makePlayer(i, getFruitByName(starts[i]), gap * (i + 1)));
+  }
+  bindPlayer(players[0]);
   updateUI();
 }
 
