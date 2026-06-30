@@ -537,24 +537,52 @@ function spawnEnemy() {
 
 // Blox Fruits collection
 // Blox Fruits with unique attack powers
+// tier = rareza (mas arriba en el tier list = mas raro). weight = peso de probabilidad
+// (mientras mas bajo el weight, MENOS posibilidades de salir).
 const bloxFruits = [
-  { name: 'Flame',   emoji: '🔥', color1: '#ff4400', color2: '#ff8800', glow: '#ff6600', points: 20,
-    attack: 'flame', desc: 'Bolas de fuego!', speed: 11, size: 16, count: 1, damage: 1, special: null },
-  { name: 'Ice',     emoji: '❄️', color1: '#00ccff', color2: '#99eeff', glow: '#00e5ff', points: 20,
-    attack: 'ice', desc: 'Cristales de hielo!', speed: 10, size: 14, count: 3, damage: 1, special: 'freeze' },
-  { name: 'Dark',    emoji: '🌑', color1: '#3300aa', color2: '#7733ff', glow: '#6600ff', points: 25,
-    attack: 'dark', desc: 'Vortice oscuro!', speed: 8, size: 22, count: 1, damage: 2, special: 'pierce' },
-  { name: 'Light',   emoji: '✨', color1: '#ffee00', color2: '#ffffff', glow: '#ffcc00', points: 25,
-    attack: 'light', desc: 'Rayo de luz!', speed: 20, size: 10, count: 2, damage: 1, special: null },
-  { name: 'Rubber',  emoji: '🟣', color1: '#cc0066', color2: '#ff66aa', glow: '#ff0088', points: 15,
-    attack: 'rubber', desc: 'Rebote loco!', speed: 9, size: 13, count: 1, damage: 1, special: 'bounce' },
-  { name: 'Dragon',  emoji: '🐉', color1: '#00cc44', color2: '#66ff99', glow: '#00ff55', points: 35,
-    attack: 'dragon', desc: 'Aliento de dragon!', speed: 7, size: 28, count: 1, damage: 3, special: 'explode' },
   { name: 'Leopard', emoji: '🐆', color1: '#ff8800', color2: '#ffcc66', glow: '#ffaa00', points: 40,
-    attack: 'leopard', desc: 'Garras rapidas!', speed: 14, size: 10, count: 5, damage: 1, special: null },
+    attack: 'leopard', desc: 'Garras rapidas!', speed: 14, size: 10, count: 5, damage: 1, special: null,
+    tier: 'SSS', weight: 1 },
+  { name: 'Dragon',  emoji: '🐉', color1: '#00cc44', color2: '#66ff99', glow: '#00ff55', points: 35,
+    attack: 'dragon', desc: 'Aliento de dragon!', speed: 7, size: 28, count: 1, damage: 3, special: 'explode',
+    tier: 'SS', weight: 2 },
   { name: 'Buddha',  emoji: '🟡', color1: '#ffcc00', color2: '#ffffaa', glow: '#ffdd33', points: 30,
-    attack: 'buddha', desc: 'Palma dorada!', speed: 6, size: 35, count: 1, damage: 2, special: 'shockwave' },
+    attack: 'buddha', desc: 'Palma dorada!', speed: 6, size: 35, count: 1, damage: 2, special: 'shockwave',
+    tier: 'S', weight: 4 },
+  { name: 'Dark',    emoji: '🌑', color1: '#3300aa', color2: '#7733ff', glow: '#6600ff', points: 25,
+    attack: 'dark', desc: 'Vortice oscuro!', speed: 8, size: 22, count: 1, damage: 2, special: 'pierce',
+    tier: 'A', weight: 7 },
+  { name: 'Light',   emoji: '✨', color1: '#ffee00', color2: '#ffffff', glow: '#ffcc00', points: 25,
+    attack: 'light', desc: 'Rayo de luz!', speed: 20, size: 10, count: 2, damage: 1, special: null,
+    tier: 'A', weight: 7 },
+  { name: 'Flame',   emoji: '🔥', color1: '#ff4400', color2: '#ff8800', glow: '#ff6600', points: 20,
+    attack: 'flame', desc: 'Bolas de fuego!', speed: 11, size: 16, count: 1, damage: 1, special: null,
+    tier: 'B', weight: 13 },
+  { name: 'Ice',     emoji: '❄️', color1: '#00ccff', color2: '#99eeff', glow: '#00e5ff', points: 20,
+    attack: 'ice', desc: 'Cristales de hielo!', speed: 10, size: 14, count: 3, damage: 1, special: 'freeze',
+    tier: 'B', weight: 13 },
+  { name: 'Rubber',  emoji: '🟣', color1: '#cc0066', color2: '#ff66aa', glow: '#ff0088', points: 15,
+    attack: 'rubber', desc: 'Rebote loco!', speed: 9, size: 13, count: 1, damage: 1, special: 'bounce',
+    tier: 'C', weight: 22 },
 ];
+
+// Color por tier para mostrar la rareza
+const tierColors = {
+  SSS: '#ff3b3b', SS: '#ff6b3b', 'S+': '#ff9b3b', S: '#ffcb3b',
+  A: '#ffe23b', B: '#9bff3b', C: '#3bffd1', D: '#3b9bff', F: '#9b9b9b'
+};
+
+// Selecciona una fruta segun su peso: las de tier alto (weight bajo) salen menos.
+function pickWeightedFruit() {
+  let total = 0;
+  for (const f of bloxFruits) total += f.weight;
+  let r = Math.random() * total;
+  for (const f of bloxFruits) {
+    r -= f.weight;
+    if (r < 0) return f;
+  }
+  return bloxFruits[bloxFruits.length - 1];
+}
 
 // Default starting power (Kitsune spirit fire)
 const kitsuneDefault = { name: 'Kitsune', emoji: '🦊', color1: '#7b2fff', color2: '#00e5ff', glow: '#9b4dff',
@@ -563,7 +591,7 @@ const kitsuneDefault = { name: 'Kitsune', emoji: '🦊', color1: '#7b2fff', colo
 let currentFruit = kitsuneDefault;
 
 function spawnFruit() {
-  const bf = bloxFruits[Math.floor(Math.random() * bloxFruits.length)];
+  const bf = pickWeightedFruit();
   fruits.push({
     x: Math.random() * (canvas.width - 100) + 50,
     y: Math.random() * (canvas.height - 200) + 100,
@@ -1499,6 +1527,17 @@ function drawFruit(f) {
   ctx.fillText(d.name, 0, bob + f.size + 20);
   ctx.shadowBlur = 0;
 
+  // Tier badge (rareza)
+  if (d.tier) {
+    const tColor = tierColors[d.tier] || '#fff';
+    ctx.font = 'bold 12px Arial';
+    ctx.fillStyle = tColor;
+    ctx.shadowColor = tColor;
+    ctx.shadowBlur = 10;
+    ctx.fillText(d.tier, 0, bob + f.size + 34);
+    ctx.shadowBlur = 0;
+  }
+
   // Blinking life indicator when almost gone
   if (f.life < 100 && Math.sin(f.wobble * 10) > 0) {
     ctx.globalAlpha = 0.5;
@@ -1741,7 +1780,7 @@ function checkCollisions() {
       power = Math.min(100, power + 12);
       // Gain the fruit's power!
       currentFruit = d;
-      showPowerup(`${d.emoji} ${d.name} Fruit! ${d.desc} ${d.emoji}`);
+      showPowerup(`${d.emoji} [${d.tier}] ${d.name} Fruit! ${d.desc} ${d.emoji}`);
       createExplosion(f.x, f.y, 120, 20);
       screenShake = 6;
       fruits.splice(fi, 1);
