@@ -644,6 +644,7 @@ function superParticles(hue1, hue2, count) {
 }
 
 function createExplosion(x, y, hue, count = 15) {
+  count = Math.min(count, Math.max(0, 550 - particles.length)); // tope anti-lag
   for (let i = 0; i < count; i++) {
     const angle = (Math.PI * 2 / count) * i;
     const speed = Math.random() * 6 + 2;
@@ -2118,8 +2119,8 @@ function drawFireball(fb) {
   ctx.shadowBlur = 0;
   ctx.restore();
 
-  // Trail particles in fruit color
-  if (Math.random() > 0.3) {
+  // Trail particles in fruit color (limitado para evitar lag)
+  if (Math.random() > 0.3 && particles.length < 480) {
     particles.push({
       x: fb.x + (Math.random() - 0.5) * 10,
       y: fb.y + (Math.random() - 0.5) * 10,
@@ -2957,15 +2958,19 @@ function update() {
     if (slashes[i].life <= 0) slashes.splice(i, 1);
   }
 
-  // Update particles
-  particles.forEach((p, i) => {
+  // Update particles (loop hacia atras para no saltarse elementos al borrar)
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
     p.x += p.vx;
     p.y += p.vy;
     p.vx *= 0.97;
     p.vy *= 0.97;
     p.life--;
     if (p.life <= 0) particles.splice(i, 1);
-  });
+  }
+  // Tope duro anti-lag: descarta las mas viejas si se acumulan
+  if (particles.length > 550) particles.splice(0, particles.length - 550);
+  if (fireballs.length > 240) fireballs.splice(0, fireballs.length - 240);
 
   // Fruit lifetime
   fruits.forEach((f, i) => {
