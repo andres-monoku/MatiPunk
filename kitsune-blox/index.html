@@ -224,6 +224,18 @@ let difficultyTimer = 0;
 let enemySpeed = 0.5;
 let bgHue = 260;
 
+// ===== ISLAS / DIFICULTAD =====
+let island = 1;
+let travel = { active: false, timer: 0, duration: 230, to: 2 };
+const ISLAND_THEMES = [
+  { name: 'Bosque Kitsune', bgHue: 260, eHue: 8,   eAura: 'rgba(255,40,0,0.22)' },
+  { name: 'Isla Sombria',   bgHue: 285, eHue: 280, eAura: 'rgba(170,0,255,0.26)' },
+  { name: 'Pantano Toxico', bgHue: 120, eHue: 100, eAura: 'rgba(90,255,0,0.26)' },
+  { name: 'Isla Infernal',  bgHue: 12,  eHue: 22,  eAura: 'rgba(255,80,0,0.30)' },
+  { name: 'Abismo Helado',  bgHue: 200, eHue: 190, eAura: 'rgba(0,180,255,0.28)' },
+];
+function islandTheme(n) { return ISLAND_THEMES[(n - 1) % ISLAND_THEMES.length]; }
+
 // Create stars
 for (let i = 0; i < 200; i++) {
   stars.push({
@@ -313,7 +325,7 @@ document.addEventListener('mousemove', (e) => {
 
 // Disparo con click = jugador 1 (apunta al click)
 canvas.addEventListener('click', (e) => {
-  if (!gameStarted) return;
+  if (!gameStarted || travel.active) return;
   const p = players[0];
   if (!p || !p.alive) return;
   if (isBeast(p.fruit)) meleeAttack(p);
@@ -323,7 +335,7 @@ canvas.addEventListener('click', (e) => {
 // Teclado: movimiento (mantener) + super (al presionar). El disparo se procesa en update().
 document.addEventListener('keydown', (e) => {
   keys.add(e.code);
-  if (!gameStarted) return;
+  if (!gameStarted || travel.active) return;
   if (e.code === 'Space') e.preventDefault(); // evita scroll
   // 1 jugador clasico: Espacio = super del jugador 1
   if (numPlayers === 1 && e.code === 'Space') {
@@ -394,6 +406,23 @@ function isBeast(fruit) {
   return !!(fruit && fruit.beastForm) || fruit === kitsuneDefault;
 }
 
+// Sube de nivel si el score lo amerita; cada 10 niveles viaja a otra isla
+function gainLevelIfNeeded() {
+  if (score <= level * 500) return;
+  level++;
+  const nt = Math.min(9, 3 + Math.floor(level / 2));
+  players.forEach(pp => pp.numTails = nt);
+  enemySpeed += 0.15;
+  if (level % 10 === 0) {
+    startIslandTravel();
+  } else {
+    const lvl = document.getElementById('level-up');
+    lvl.textContent = `🌟 NIVEL ${level}! 🌟 ${nt} COLAS!`;
+    lvl.style.opacity = 1; lvl.style.color = '#ffcc00';
+    setTimeout(() => { lvl.style.opacity = 0; }, 2000);
+  }
+}
+
 // Da score/combo/poder al matar (usado por el ataque melee)
 function awardKill(e, ownerId) {
   createExplosion(e.x, e.y, e.hue);
@@ -402,16 +431,7 @@ function awardKill(e, ownerId) {
   comboTimer = 180;
   const owner = players[ownerId];
   if (owner) owner.power = Math.min(100, owner.power + 8);
-  if (score > level * 500) {
-    level++;
-    const nt = Math.min(9, 3 + Math.floor(level / 2));
-    players.forEach(pp => pp.numTails = nt);
-    enemySpeed += 0.15;
-    const lvl = document.getElementById('level-up');
-    lvl.textContent = `🌟 NIVEL ${level}! 🌟 ${nt} COLAS!`;
-    lvl.style.opacity = 1; lvl.style.color = '#ffcc00';
-    setTimeout(() => { lvl.style.opacity = 0; }, 2000);
-  }
+  gainLevelIfNeeded();
   showCombo();
 }
 
@@ -697,15 +717,18 @@ function spawnEnemy() {
 
   const types = ['orb', 'skull', 'diamond'];
   const type = types[Math.floor(Math.random() * types.length)];
+  const th = islandTheme(island);
 
   enemies.push({
     x, y,
-    speed: enemySpeed + Math.random() * 0.3,
-    size: 20 + Math.random() * 15,
-    hue: Math.random() * 60 + 0, // red-orange
+    speed: enemySpeed + Math.random() * 0.3 + (island - 1) * 0.45,
+    size: 20 + Math.random() * 15 + (island - 1) * 5,
+    hue: th.eHue + Math.random() * 35,
+    auraColor: th.eAura,
+    island,
     type,
     wobble: Math.random() * Math.PI * 2,
-    hp: type === 'diamond' ? 2 : 1
+    hp: (type === 'diamond' ? 2 : 1) + (island - 1) * 2
   });
 }
 
@@ -1907,14 +1930,30 @@ function drawEnemy(e) {
   e.wobble += 0.05;
   const throb = 1 + Math.sin(e.wobble * 3) * 0.06;
 
-  // Dark menacing aura
+  // Dark menacing aura (color segun la isla)
   const aura = ctx.createRadialGradient(0, wobble, e.size * 0.3, 0, wobble, e.size * 2);
-  aura.addColorStop(0, 'rgba(255, 0, 0, 0.2)');
+  aura.addColorStop(0, e.auraColor || 'rgba(255, 0, 0, 0.2)');
   aura.addColorStop(1, 'transparent');
   ctx.fillStyle = aura;
   ctx.fillRect(-e.size * 2, wobble - e.size * 2, e.size * 4, e.size * 4);
 
   ctx.scale(throb, throb);
+
+  // Pinchos amenazantes en islas avanzadas
+  if (e.island > 1) {
+    const spikes = 4 + e.island * 2;
+    ctx.fillStyle = `hsl(${e.hue}, 90%, 42%)`;
+    ctx.shadowColor = `hsl(${e.hue}, 100%, 60%)`; ctx.shadowBlur = 10;
+    for (let i = 0; i < spikes; i++) {
+      const a = (Math.PI * 2 / spikes) * i + e.wobble * 0.2;
+      ctx.save(); ctx.rotate(a);
+      ctx.beginPath();
+      ctx.moveTo(-4, wobble + e.size * 0.7); ctx.lineTo(0, wobble + e.size * 1.5); ctx.lineTo(4, wobble + e.size * 0.7);
+      ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+    ctx.shadowBlur = 0;
+  }
 
   if (e.type === 'orb') {
     // Dark shadow orb
@@ -2253,6 +2292,117 @@ function drawCursor() {
   ctx.restore();
 }
 
+// ===== VIAJE ENTRE ISLAS =====
+function startIslandTravel() {
+  travel.active = true;
+  travel.timer = travel.duration;
+  travel.to = island + 1;
+  enemies = [];
+  fireballs = [];
+  slashes = [];
+  screenShake = 0;
+}
+
+function updateTravel() {
+  travel.timer--;
+  if (travel.timer <= 0) {
+    travel.active = false;
+    island = travel.to;
+    const th = islandTheme(island);
+    bgHue = th.bgHue;
+    const lvl = document.getElementById('level-up');
+    lvl.textContent = `🏝️ ${th.name} 🏝️`;
+    lvl.style.opacity = 1; lvl.style.color = '#00e5ff';
+    setTimeout(() => { lvl.style.opacity = 0; }, 2200);
+  }
+}
+
+function drawIslandSilhouette(x, y, s, theme) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  ctx.beginPath(); ctx.moveTo(-85, 4); ctx.quadraticCurveTo(0, -46, 85, 4);
+  ctx.lineTo(85, 42); ctx.lineTo(-85, 42); ctx.closePath();
+  ctx.fillStyle = `hsl(${theme.bgHue}, 42%, 16%)`; ctx.fill();
+  ctx.strokeStyle = `hsl(${theme.bgHue}, 70%, 45%)`; ctx.lineWidth = 3; ctx.stroke();
+  // palmera
+  ctx.strokeStyle = '#3a2a1a'; ctx.lineWidth = 6; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(0, -28); ctx.quadraticCurveTo(10, -58, 2, -80); ctx.stroke();
+  ctx.lineCap = 'butt';
+  ctx.fillStyle = `hsl(${theme.bgHue}, 55%, 32%)`;
+  for (let i = 0; i < 5; i++) {
+    ctx.save(); ctx.translate(2, -80); ctx.rotate((i - 2) * 0.5);
+    ctx.beginPath(); ctx.ellipse(20, 0, 22, 6, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+  }
+  ctx.restore();
+}
+
+function drawTravelScene() {
+  const W = canvas.width, H = canvas.height;
+  const seaY = H * 0.6;
+  // Cielo nocturno
+  const sky = ctx.createLinearGradient(0, 0, 0, seaY);
+  sky.addColorStop(0, '#0a1230'); sky.addColorStop(1, '#14335c');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, seaY);
+  // Luna
+  ctx.beginPath(); ctx.arc(W * 0.82, H * 0.18, 34, 0, Math.PI * 2);
+  ctx.fillStyle = '#eaf4ff'; ctx.shadowColor = '#aaccff'; ctx.shadowBlur = 45; ctx.fill(); ctx.shadowBlur = 0;
+  // Estrellas
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  stars.forEach(s => { if (s.y < seaY) ctx.fillRect(s.x, s.y, s.size, s.size); });
+
+  // Isla destino acercandose
+  const t = 1 - travel.timer / travel.duration;
+  drawIslandSilhouette(W * 0.95 - t * (W * 0.32), seaY - 6, 0.5 + t * 0.95, islandTheme(travel.to));
+
+  // Mar
+  const sea = ctx.createLinearGradient(0, seaY, 0, H);
+  sea.addColorStop(0, '#0c3e60'); sea.addColorStop(1, '#04263d');
+  ctx.fillStyle = sea; ctx.fillRect(0, seaY, W, H - seaY);
+  ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 2;
+  for (let r = 0; r < 5; r++) {
+    const yy = seaY + 14 + r * 22;
+    ctx.beginPath();
+    for (let x = 0; x <= W; x += 18) {
+      const off = Math.sin(x * 0.03 + kitsuneFrame * 2 + r) * 4;
+      if (x === 0) ctx.moveTo(x, yy + off); else ctx.lineTo(x, yy + off);
+    }
+    ctx.stroke();
+  }
+
+  // Barco con los jugadores encima
+  const bx = W * 0.4 + Math.sin(kitsuneFrame) * 10;
+  const by = seaY + 30 + Math.sin(kitsuneFrame * 1.5) * 6;
+  // casco
+  ctx.save(); ctx.translate(bx, by);
+  ctx.beginPath(); ctx.moveTo(-62, 0); ctx.quadraticCurveTo(0, 36, 62, 0); ctx.lineTo(48, -12); ctx.lineTo(-48, -12); ctx.closePath();
+  const hg = ctx.createLinearGradient(0, -12, 0, 30); hg.addColorStop(0, '#7a4a22'); hg.addColorStop(1, '#3a2410');
+  ctx.fillStyle = hg; ctx.fill(); ctx.strokeStyle = '#241608'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.restore();
+  // jugadores parados en la cubierta
+  players.forEach((p, i) => {
+    const sx = p.x, sy = p.y, sf = p.facing;
+    p.x = bx - (players.length - 1) * 17 + i * 34; p.y = by - 30; p.facing = 1;
+    bindPlayer(p); drawKitsune();
+    p.x = sx; p.y = sy; p.facing = sf;
+  });
+  // mastil + vela (delante de los jugadores)
+  ctx.save(); ctx.translate(bx, by);
+  ctx.fillStyle = '#5a3a1a'; ctx.fillRect(-3, -86, 6, 74);
+  ctx.beginPath(); ctx.moveTo(3, -82); ctx.quadraticCurveTo(50, -58, 42, -18); ctx.lineTo(3, -24); ctx.closePath();
+  ctx.fillStyle = '#e8e0d0'; ctx.fill(); ctx.strokeStyle = '#b8b0a0'; ctx.lineWidth = 2; ctx.stroke();
+  // emblema kitsune en la vela
+  ctx.font = '22px Arial'; ctx.textAlign = 'center'; ctx.fillText('🦊', 22, -48);
+  ctx.restore();
+
+  // Texto
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 34px Arial';
+  ctx.shadowColor = '#00e5ff'; ctx.shadowBlur = 22;
+  ctx.fillText(`⛵ Viajando a ${islandTheme(travel.to).name}...`, W / 2, 70);
+  ctx.font = '18px Arial'; ctx.fillStyle = '#bfe8ff';
+  ctx.fillText('¡Enemigos mas fuertes te esperan!', W / 2, 100);
+  ctx.shadowBlur = 0;
+}
+
 function drawBackground() {
   // Dark gradient bg
   const bg = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, canvas.width/2, canvas.height/2, canvas.width * 0.7);
@@ -2371,18 +2521,8 @@ function checkCollisions() {
           const owner = players[fb.owner];
           if (owner) owner.power = Math.min(100, owner.power + 8);
 
-          // Level up check
-          if (score > level * 500) {
-            level++;
-            const nt = Math.min(9, 3 + Math.floor(level / 2));
-            players.forEach(pp => pp.numTails = nt);
-            enemySpeed += 0.15;
-            const lvl = document.getElementById('level-up');
-            lvl.textContent = `🌟 NIVEL ${level}! 🌟 ${nt} COLAS!`;
-            lvl.style.opacity = 1;
-            lvl.style.color = '#ffcc00';
-            setTimeout(() => { lvl.style.opacity = 0; }, 2000);
-          }
+          // Level up check (cada 10 niveles dispara el viaje a otra isla)
+          gainLevelIfNeeded();
 
           showCombo();
         } else {
@@ -2546,6 +2686,7 @@ function updatePlayers() {
 
 function update() {
   if (!gameStarted) return;
+  if (travel.active) { updateTravel(); return; }
 
   updatePlayers();
 
@@ -2654,6 +2795,13 @@ function draw() {
     );
   }
 
+  // Cinematica de viaje a otra isla
+  if (travel.active) {
+    drawTravelScene();
+    ctx.restore();
+    return;
+  }
+
   drawBackground();
 
   // Draw fruits
@@ -2719,6 +2867,9 @@ function startGame(n) {
   score = 0;
   combo = 1;
   level = 1;
+  island = 1;
+  travel.active = false;
+  bgHue = islandTheme(1).bgHue;
   enemySpeed = 0.5;
   enemies = [];
   fireballs = [];
