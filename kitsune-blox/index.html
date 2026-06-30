@@ -625,7 +625,7 @@ const bloxFruits = [
     attack: 'dark',    desc: 'Nube toxica!',         speed: 9,  size: 24, count: 1, special: 'pierce',    tier: 'SS' },
   // ===== S+ =====
   { name: 'Mammoth',  emoji: '🦣', color1: '#8844cc', color2: '#cc99ff', glow: '#aa66ff',
-    attack: 'dragon',  desc: 'Pisoton sismico!',     speed: 6,  size: 30, count: 1, special: 'shockwave', tier: 'S+', beastForm: 'dragon' },
+    attack: 'dragon',  desc: 'Pisoton sismico!',     speed: 6,  size: 30, count: 1, special: 'shockwave', tier: 'S+', beastForm: 'mammoth' },
   { name: 'T-Rex',    emoji: '🦖', color1: '#aa5522', color2: '#ee9955', glow: '#cc7733',
     attack: 'dragon',  desc: 'Mordida brutal!',      speed: 8,  size: 26, count: 1, special: 'explode',   tier: 'S+', beastForm: 'dragon' },
   // ===== S- =====
@@ -794,6 +794,8 @@ function drawKitsune() {
   // Todas las demas frutas (no-bestia) = el personaje humano, sin transformarse en bestia.
   if (cf === kitsuneDefault) {
     drawFormKitsune(k, lb);
+  } else if (cf.beastForm === 'mammoth') {
+    drawFormMammoth(k, lb);
   } else if (cf.beastForm === 'dragon') {
     drawFormDragon(k, lb);
   } else if (cf.beastForm === 'leopard') {
@@ -857,6 +859,104 @@ function drawLegs(color, glowColor, lb, frontX, backX, topY, len) {
   ctx.fillRect(frontX - 1, topY + len + lb, 8, 4); ctx.fillRect(frontX + 9, topY + len - lb, 8, 4);
   ctx.fillRect(backX - 1, topY + len - 4 - lb, 8, 4); ctx.fillRect(backX + 7, topY + len - 4 + lb, 8, 4);
   ctx.shadowBlur = 0;
+}
+
+// ====== FORM: MAMMOTH (mamut acorazado con cristales azules) ======
+function drawFormMammoth(k, lb) {
+  const sway = Math.sin(k.tailPhase) * 3;
+  // Helper: pua de cristal azul brillante
+  const spike = (x, y, len, w, ang) => {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    const g = ctx.createLinearGradient(0, 0, 0, -len);
+    g.addColorStop(0, '#0d3a7a'); g.addColorStop(0.5, '#2f9bff'); g.addColorStop(1, '#e6f5ff');
+    ctx.beginPath(); ctx.moveTo(-w, 0); ctx.lineTo(0, -len); ctx.lineTo(w, 0); ctx.closePath();
+    ctx.fillStyle = g; ctx.shadowColor = '#3aa0ff'; ctx.shadowBlur = 16; ctx.fill();
+    ctx.restore();
+  };
+  // Helper: placa de armadura gris con borde dorado + cristal azul
+  const plate = (x, y, w, h) => {
+    ctx.beginPath(); ctx.ellipse(x, y, w, h, 0, 0, Math.PI * 2);
+    const pg = ctx.createLinearGradient(x - w, y - h, x + w, y + h);
+    pg.addColorStop(0, '#9aa3ad'); pg.addColorStop(0.5, '#5d6670'); pg.addColorStop(1, '#3a4048');
+    ctx.fillStyle = pg; ctx.shadowBlur = 0; ctx.fill();
+    ctx.strokeStyle = '#caa84a'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(x, y, 3, 5, 0, 0, Math.PI * 2);
+    ctx.fillStyle = '#6fd0ff'; ctx.shadowColor = '#3aa0ff'; ctx.shadowBlur = 12; ctx.fill(); ctx.shadowBlur = 0;
+  };
+
+  // --- Patas traseras (detras) ---
+  ctx.fillStyle = '#241a14';
+  ctx.fillRect(-30, 18, 13, 22 + lb); ctx.fillRect(-2, 18, 13, 22 - lb);
+  // tono rojizo inferior + pezunas
+  ctx.fillStyle = '#5a2418'; ctx.fillRect(-30, 34 + lb, 13, 8); ctx.fillRect(-2, 34 - lb, 13, 8);
+
+  // --- Cuerpo voluminoso oscuro ---
+  ctx.beginPath(); ctx.ellipse(-2, 2, 36, 26, 0, 0, Math.PI * 2);
+  const bg = ctx.createLinearGradient(-38, -24, 34, 28);
+  bg.addColorStop(0, '#3a2a22'); bg.addColorStop(0.5, '#241712'); bg.addColorStop(1, '#10090a');
+  ctx.fillStyle = bg; ctx.fill();
+  ctx.strokeStyle = '#1a0f0c'; ctx.lineWidth = 2; ctx.stroke();
+  // vientre rojizo
+  ctx.beginPath(); ctx.ellipse(0, 16, 30, 12, 0, 0, Math.PI); ctx.fillStyle = '#4a1c14'; ctx.fill();
+
+  // --- Patas delanteras ---
+  ctx.fillStyle = '#2c201a';
+  ctx.fillRect(14, 20, 14, 22 - lb); ctx.fillRect(-22, 20, 14, 22 + lb);
+  ctx.fillStyle = '#5a2418'; ctx.fillRect(14, 36 - lb, 14, 8); ctx.fillRect(-22, 36 + lb, 14, 8);
+  // armadura en las patas
+  plate(21, 26 - lb, 9, 7); plate(-15, 26 + lb, 9, 7);
+
+  // --- Placa de hombro grande con cristal ---
+  plate(-2, -2, 16, 18);
+  spike(-8, -14, 20, 5, -0.5); spike(4, -16, 24, 5, -0.2);
+
+  // --- Cristales azules en el lomo ---
+  spike(-26, -18, 18, 4, -0.4); spike(-18, -24, 24, 5, -0.2);
+  spike(-8, -28, 28, 6, -0.05); spike(2, -26, 22, 5, 0.15);
+
+  // --- Cabeza acorazada (derecha) ---
+  ctx.beginPath(); ctx.ellipse(34, -2, 21, 19, 0, 0, Math.PI * 2);
+  const hg = ctx.createLinearGradient(16, -20, 52, 16);
+  hg.addColorStop(0, '#2e2018'); hg.addColorStop(1, '#120a0a');
+  ctx.fillStyle = hg; ctx.fill(); ctx.strokeStyle = '#1a0f0c'; ctx.lineWidth = 2; ctx.stroke();
+
+  // casco/armadura de la cabeza
+  ctx.beginPath(); ctx.ellipse(34, -14, 18, 9, 0, 0, Math.PI * 2);
+  const cg = ctx.createLinearGradient(16, -22, 52, -6);
+  cg.addColorStop(0, '#8a939d'); cg.addColorStop(0.5, '#525a64'); cg.addColorStop(1, '#363c44');
+  ctx.fillStyle = cg; ctx.fill(); ctx.strokeStyle = '#caa84a'; ctx.lineWidth = 2; ctx.stroke();
+  // cristales sobre la cabeza
+  spike(24, -18, 22, 5, -0.35); spike(34, -22, 30, 6, 0); spike(44, -18, 22, 5, 0.35);
+
+  // --- Ojo rojo brillante ---
+  ctx.beginPath(); ctx.arc(34, -2, 5, 0, Math.PI * 2);
+  ctx.fillStyle = '#ff2a1a'; ctx.shadowColor = '#ff3b2a'; ctx.shadowBlur = 18; ctx.fill();
+  ctx.beginPath(); ctx.arc(35, -3, 2, 0, Math.PI * 2); ctx.fillStyle = '#ffd0c0'; ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // --- Trompa larga curvada ---
+  ctx.beginPath();
+  ctx.moveTo(50, 4);
+  ctx.quadraticCurveTo(70, 18, 66, 38 + sway);
+  ctx.quadraticCurveTo(63, 52 + sway, 74, 58 + sway);
+  ctx.lineWidth = 11; ctx.strokeStyle = '#2a1c16'; ctx.lineCap = 'round'; ctx.stroke();
+  ctx.lineWidth = 5; ctx.strokeStyle = '#3e2a20'; ctx.stroke();
+  ctx.lineCap = 'butt';
+
+  // --- Colmillos dorados (dos curvas largas) ---
+  for (const off of [0, 9]) {
+    ctx.beginPath();
+    ctx.moveTo(46, 8 + off);
+    ctx.quadraticCurveTo(64, 28 + off, 60, 46 + off + sway);
+    ctx.quadraticCurveTo(58, 56 + off, 70, 60 + off + sway);
+    ctx.lineWidth = 7 - off * 0.2; ctx.strokeStyle = '#efe0b0'; ctx.lineCap = 'round'; ctx.stroke();
+    ctx.lineWidth = 3; ctx.strokeStyle = '#fff7e0'; ctx.stroke();
+    ctx.lineCap = 'butt';
+  }
+
+  // oreja
+  ctx.beginPath(); ctx.ellipse(20, 0, 10, 14, 0.3, 0, Math.PI * 2);
+  ctx.fillStyle = '#1c1210'; ctx.fill(); ctx.strokeStyle = '#3a2a22'; ctx.lineWidth = 1.5; ctx.stroke();
 }
 
 // ====== FORM: HUMAN (personaje de la imagen) ======
