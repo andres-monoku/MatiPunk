@@ -197,6 +197,7 @@ window.addEventListener('resize', () => {
 // Game state
 let gameStarted = false;
 let score = 0;
+let kills = 0;
 let combo = 1;
 let comboTimer = 0;
 let power = 0;
@@ -406,9 +407,9 @@ function isBeast(fruit) {
   return !!(fruit && fruit.beastForm) || fruit === kitsuneDefault;
 }
 
-// Sube de nivel si el score lo amerita; cada 10 niveles viaja a otra isla
+// Sube 1 nivel por cada 8 enemigos derrotados; cada 10 niveles viaja a otra isla
 function gainLevelIfNeeded() {
-  if (score <= level * 500) return;
+  if (kills < level * 8) return;
   level++;
   const nt = Math.min(9, 3 + Math.floor(level / 2));
   players.forEach(pp => pp.numTails = nt);
@@ -427,6 +428,7 @@ function gainLevelIfNeeded() {
 function awardKill(e, ownerId) {
   createExplosion(e.x, e.y, e.hue);
   score += 10 * combo;
+  kills++;
   combo++;
   comboTimer = 180;
   const owner = players[ownerId];
@@ -2515,13 +2517,14 @@ function checkCollisions() {
 
           enemies.splice(ei, 1);
           score += 10 * combo;
+          kills++;
           combo++;
           comboTimer = 180;
           // El poder va al jugador dueño del proyectil
           const owner = players[fb.owner];
           if (owner) owner.power = Math.min(100, owner.power + 8);
 
-          // Level up check (cada 10 niveles dispara el viaje a otra isla)
+          // Sube de nivel por kills; cada 10 niveles dispara el viaje a otra isla
           gainLevelIfNeeded();
 
           showCombo();
@@ -2865,6 +2868,7 @@ function startGame(n) {
   document.getElementById('title-screen').style.display = 'none';
   gameStarted = true;
   score = 0;
+  kills = 0;
   combo = 1;
   level = 1;
   island = 1;
