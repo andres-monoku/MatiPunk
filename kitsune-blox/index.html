@@ -253,6 +253,7 @@ for (let i = 0; i < 200; i++) {
 // para reutilizar el codigo de dibujo y super-ataques sin reescribirlo.
 let numPlayers = 1;
 let players = [];
+let activeId = 0;
 const keys = new Set();
 
 // Configuracion de controles por jugador (codigos de e.code)
@@ -283,6 +284,7 @@ function makePlayer(id, fruit, x) {
 // Copia jugador -> globales (para que el codigo existente opere sobre el)
 function bindPlayer(p) {
   kitsune = p;
+  activeId = p.id;
   currentFruit = p.fruit;
   power = p.power;
   health = p.health;
@@ -520,161 +522,110 @@ function activateSuperAttackFor(p) {
   commitPlayer(p);
 }
 
+// ===== SUPER ATAQUES UNICOS POR FRUTA =====
+function pushSuperBall(F, owner, x, y, ang, sp, sz, life, pi, bo) {
+  fireballs.push({ x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, size: sz, life, fruit: F, owner, phase: Math.random() * 6, bounces: bo || 0, piercing: !!pi });
+}
+
+// Cada fruta tiene su propio super: nm=nombre, c=color, h=tono particulas, fx=efecto,
+// + modificadores k(matar todo) hl(curar) fz(congelar) sh(onda) y parametros del efecto.
+const SUPERS = {
+  Kitsune:  { nm:'KITSUNE BLAST',        c:'#00e5ff', h:200, fx:'none',     k:true },
+  Dragon:   { nm:'FURIA DEL DRAGON',     c:'#00ff55', h:120, fx:'nova',     ct:8,  sp:6,  sz:45, pi:true, k:true, dur:150 },
+  Leopard:  { nm:'ZARPAZO SALVAJE',      c:'#ffaa00', h:35,  fx:'spiral',   waves:5, per:12, sp:16, sz:12 },
+  Gas:      { nm:'TORMENTA TOXICA',      c:'#66ff33', h:110, fx:'nova',     ct:42, sp:8,  sz:16, pi:true },
+  Mammoth:  { nm:'PISOTON COLOSAL',      c:'#aa66ff', h:280, fx:'none',     sh:{dmg:3,push:280}, dur:150 },
+  'T-Rex':  { nm:'RUGIDO PRIMITIVO',     c:'#cc7733', h:25,  fx:'nova',     ct:10, sp:9,  sz:34, pi:true, sh:{dmg:3,push:120}, dur:150 },
+  Dough:    { nm:'PUNO DE MOCHI',        c:'#ffcc66', h:40,  fx:'barrage',  ct:20, sp:9,  sz:18, bo:7 },
+  Spirit:   { nm:'ALMAS VENGATIVAS',     c:'#33ffe5', h:170, fx:'seekers',  ct:18, sp:14 },
+  Control:  { nm:'MANIPULACION',         c:'#4477ff', h:220, fx:'cross',    arms:6,  sp:18, sz:14 },
+  Venom:    { nm:'COLMILLO LETAL',       c:'#aa33cc', h:285, fx:'seekers',  ct:16, sp:12, sz:16, sh:{dmg:1,push:60} },
+  Shadow:   { nm:'ECLIPSE',              c:'#7733cc', h:275, fx:'nova',     ct:24, sp:10, sz:18, pi:true },
+  Portal:   { nm:'SALTO CUANTICO',       c:'#33aaff', h:210, fx:'nova',     ct:16, sp:18, sz:13, pi:true, k:true },
+  Buddha:   { nm:'ILUMINACION',          c:'#ffcc00', h:48,  fx:'none',     sh:{dmg:2,push:200}, hl:true, dur:150 },
+  Phoenix:  { nm:'RENACER ARDIENTE',     c:'#33bbff', h:200, fx:'nova',     ct:14, sp:13, sz:18, hl:true, k:true, dur:150 },
+  Rumble:   { nm:'TORMENTA ELECTRICA',   c:'#ffee33', h:55,  fx:'cross',    arms:16, sp:24, sz:10 },
+  Blizzard: { nm:'GRAN VENTISCA',        c:'#66ccff', h:195, fx:'rain',     ct:24, sz:14, fz:true, dur:180 },
+  Yeti:     { nm:'VENTISCA ETERNA',      c:'#aaddff', h:195, fx:'nova',     ct:20, sp:12, sz:14, fz:true, dur:180 },
+  Light:    { nm:'EXPLOSION DE LUZ',     c:'#ffee00', h:55,  fx:'nova',     ct:50, sp:22, sz:12, pi:true },
+  Magma:    { nm:'ERUPCION',             c:'#ff5500', h:18,  fx:'meteor',   ct:14, sz:30, dur:150 },
+  Dark:     { nm:'AGUJERO NEGRO',        c:'#7733ff', h:270, fx:'blackhole' },
+  Quake:    { nm:'TERREMOTO',            c:'#44aacc', h:200, fx:'none',     sh:{dmg:2,push:220}, k:true, dur:150 },
+  Love:     { nm:'FLECHAZO MORTAL',      c:'#ff66bb', h:330, fx:'seekers',  ct:20, sp:13, sz:14 },
+  Spider:   { nm:'RED MORTAL',           c:'#bb3333', h:5,   fx:'barrage',  ct:26, sp:7,  sz:12, bo:8 },
+  Sound:    { nm:'ONDA SONICA',          c:'#ff66ff', h:300, fx:'beamring', ct:40, dur:150 },
+  Ghost:    { nm:'POSESION ESPECTRAL',   c:'#88aacc', h:210, fx:'nova',     ct:20, sp:9,  sz:18, pi:true },
+  Barrier:  { nm:'FORTALEZA',            c:'#aacc44', h:90,  fx:'none',     sh:{dmg:1,push:160}, hl:true },
+  Pain:     { nm:'JUICIO FINAL',         c:'#cc2244', h:350, fx:'nova',     ct:20, sp:12, sz:16, k:true },
+  Gravity:  { nm:'LLUVIA DE METEOROS',   c:'#7755cc', h:275, fx:'meteor',   ct:18, sz:34, dur:150 },
+  Ice:      { nm:'ERA DE HIELO',         c:'#00ccff', h:195, fx:'none',     fz:true, dur:180 },
+  Sand:     { nm:'TORMENTA DE ARENA',    c:'#ddbb66', h:40,  fx:'nova',     ct:36, sp:10, sz:10 },
+  Flame:    { nm:'LLUVIA DE FUEGO',      c:'#ff6600', h:25,  fx:'rain',     ct:25, sz:20 },
+  Diamond:  { nm:'PRISMA LETAL',         c:'#66ffff', h:180, fx:'cross',    arms:8,  sp:20, sz:14 },
+  Falcon:   { nm:'PICADA DEL HALCON',    c:'#5599dd', h:210, fx:'dash',     ct:18, sp:20, sz:14 },
+  String:   { nm:'HILOS CORTANTES',      c:'#ee6699', h:330, fx:'cross',    arms:10, sp:18, sz:8 },
+  Rubber:   { nm:'REBOTE TOTAL',         c:'#ff66aa', h:330, fx:'barrage',  ct:30, sp:10, sz:14, bo:6 },
+  Bomb:     { nm:'EXPLOSION MASIVA',     c:'#ff8800', h:30,  fx:'nova',     ct:12, sp:9,  sz:24, k:true },
+  Spike:    { nm:'PUAS MORTALES',        c:'#55aa44', h:100, fx:'nova',     ct:20, sp:13, sz:10 },
+  Smoke:    { nm:'CORTINA DE HUMO',      c:'#999999', h:5,   fx:'nova',     ct:24, sp:7,  sz:18 },
+  Spring:   { nm:'RESORTE LOCO',         c:'#66cc66', h:120, fx:'barrage',  ct:24, sp:12, sz:13, bo:9 },
+  Blade:    { nm:'MIL CORTES',           c:'#aaaacc', h:210, fx:'cross',    arms:14, sp:24, sz:9 },
+  Rocket:   { nm:'BOMBARDEO',            c:'#dd5533', h:15,  fx:'rain',     ct:20, sz:18 },
+  Chop:     { nm:'CUCHILLAS GIRATORIAS', c:'#cccccc', h:200, fx:'spiral',   waves:4, per:10, sp:16, sz:10 },
+  Spin:     { nm:'TORNADO',              c:'#eeaa66', h:40,  fx:'spiral',   waves:6, per:14, sp:12, sz:11 },
+  _default: { nm:'PODER SUPREMO',        c:'#ffffff', h:200, fx:'nova',     ct:24, sp:14, sz:16, k:true },
+};
+
+function runSuper(cf, s) {
+  const F = currentFruit, owner = activeId, cx = kitsune.x, cy = kitsune.y;
+  superAttackTimer = s.dur || 120;
+  screenShake = 22;
+  // --- Modificadores ---
+  if (s.fz) enemies.forEach(e => { e.speed = 0.05; e.hp = Math.min(e.hp, 1); createExplosion(e.x, e.y, 190, 8); });
+  if (s.sh) { enemies.forEach(e => { const dx = e.x - cx, dy = e.y - cy, d = Math.sqrt(dx*dx+dy*dy)||1; e.x += dx/d*s.sh.push; e.y += dy/d*s.sh.push; e.hp -= s.sh.dmg; createExplosion(e.x, e.y, 50, 10); if (e.hp <= 0) score += 50*combo; }); enemies = enemies.filter(e => e.hp > 0); }
+  if (s.hl) health = Math.min(5, health + 1);
+  if (s.k) { enemies.forEach(e => { createExplosion(e.x, e.y, e.hue, 22); score += 50*combo; }); enemies = []; }
+  // --- Efecto de proyectiles ---
+  const ct = s.ct || 24, sp = s.sp || 14, sz = s.sz || 16;
+  if (s.fx === 'nova') {
+    for (let i = 0; i < ct; i++) pushSuperBall(F, owner, cx, cy, (Math.PI*2/ct)*i, sp, sz, s.life || 80, s.pi, s.bo);
+  } else if (s.fx === 'cross') {
+    for (let i = 0; i < s.arms; i++) pushSuperBall(F, owner, cx, cy, (Math.PI*2/s.arms)*i, sp, sz, 70, true, 0);
+  } else if (s.fx === 'barrage') {
+    for (let i = 0; i < ct; i++) pushSuperBall(F, owner, cx, cy, (Math.PI*2/ct)*i + Math.random()*0.3, sp + Math.random()*5, sz, 150, false, s.bo || 6);
+  } else if (s.fx === 'beamring') {
+    for (let i = 0; i < ct; i++) pushSuperBall(F, owner, cx, cy, (Math.PI*2/ct)*i, 20, 12, 60, true, 0);
+  } else if (s.fx === 'seekers') {
+    for (let i = 0; i < ct; i++) { const e = enemies.length ? enemies[Math.floor(Math.random()*enemies.length)] : null; const a = e ? Math.atan2(e.y-cy, e.x-cx) : (Math.PI*2/ct)*i; pushSuperBall(F, owner, cx, cy, a, sp, sz, 100, true, 0); }
+  } else if (s.fx === 'dash') {
+    const base = kitsune.facing >= 0 ? 0 : Math.PI;
+    for (let i = 0; i < ct; i++) pushSuperBall(F, owner, cx, cy, base + (i-(ct-1)/2)*0.12, sp, sz, 70, true, 0);
+  } else if (s.fx === 'rain') {
+    for (let i = 0; i < ct; i++) ((d) => setTimeout(() => { if (!gameStarted) return; fireballs.push({ x: Math.random()*canvas.width, y: -20, vx: (Math.random()-0.5)*2, vy: 10+Math.random()*5, size: sz, life: 120, fruit: F, owner, phase: 0, bounces: 0, piercing: false }); }, d))(i*50);
+  } else if (s.fx === 'meteor') {
+    for (let i = 0; i < ct; i++) ((d) => setTimeout(() => { if (!gameStarted) return; fireballs.push({ x: Math.random()*canvas.width, y: -20, vx: (Math.random()-0.5)*3, vy: 8+Math.random()*4, size: sz, life: 130, fruit: F, owner, phase: 0, bounces: 0, piercing: false }); screenShake = 10; }, d))(i*70);
+  } else if (s.fx === 'spiral') {
+    for (let w = 0; w < s.waves; w++) ((ww) => setTimeout(() => { if (!gameStarted) return; for (let i = 0; i < s.per; i++) pushSuperBall(F, owner, kitsune.x, kitsune.y, (Math.PI*2/s.per)*i + ww*0.4, sp, sz, 80, false, 0); screenShake = 8; }, ww*120))(w);
+  } else if (s.fx === 'blackhole') {
+    enemies.forEach(e => { e.x = cx + (Math.random()-0.5)*40; e.y = cy + (Math.random()-0.5)*40; });
+    setTimeout(() => { enemies.forEach(e => { createExplosion(e.x, e.y, 270, 20); score += 50*combo; }); enemies = []; screenShake = 25; }, 300);
+  }
+  // --- Particulas + texto ---
+  superParticles(s.h - 25, s.h + 25, 90);
+  const lvl = document.getElementById('level-up');
+  lvl.textContent = `${cf.emoji || '🦊'} ${s.nm}! ${cf.emoji || ''}`;
+  lvl.style.color = s.c || cf.glow;
+  lvl.style.opacity = 1;
+  setTimeout(() => { lvl.style.opacity = 0; }, 1800);
+}
+
 function activateSuperAttack() {
   superAttackActive = true;
   superAttackTimer = 120;
   power = 0;
   screenShake = 20;
   superAttackType = currentFruit.attack;
-
-  const cf = currentFruit;
-  const lvl = document.getElementById('level-up');
-
-  if (cf.attack === 'kitsune') {
-    // Default: spirit wave kills all
-    enemies.forEach(e => { createExplosion(e.x, e.y, e.hue, 30); score += 50 * combo; });
-    enemies = [];
-    superParticles(180, 270, 100);
-    lvl.textContent = '🦊 KITSUNE BLAST! 🦊';
-    lvl.style.color = '#00e5ff';
-
-  } else if (cf.attack === 'flame') {
-    // Fire storm: rain of fireballs from above
-    for (let i = 0; i < 25; i++) {
-      setTimeout(() => {
-        if (!gameStarted) return;
-        const rx = Math.random() * canvas.width;
-        fireballs.push({
-          x: rx, y: -20,
-          vx: (Math.random() - 0.5) * 2, vy: 10 + Math.random() * 5,
-          size: 20, life: 120, fruit: cf, phase: 0, bounces: 0, piercing: false
-        });
-      }, i * 60);
-    }
-    superParticles(15, 40, 80);
-    lvl.textContent = '🔥 LLUVIA DE FUEGO! 🔥';
-    lvl.style.color = '#ff4400';
-
-  } else if (cf.attack === 'ice') {
-    // Ice age: freeze ALL enemies and make them fragile
-    enemies.forEach(e => {
-      e.speed = 0.05;
-      e.hp = 1;
-      createExplosion(e.x, e.y, 190, 10);
-    });
-    superParticles(180, 200, 100);
-    superAttackTimer = 180;
-    lvl.textContent = '❄️ ERA DE HIELO! ❄️';
-    lvl.style.color = '#00ccff';
-
-  } else if (cf.attack === 'dark') {
-    // Black hole: suck all enemies to center then explode
-    const cx = kitsune.x, cy = kitsune.y;
-    enemies.forEach(e => {
-      e.x = cx + (Math.random() - 0.5) * 40;
-      e.y = cy + (Math.random() - 0.5) * 40;
-    });
-    setTimeout(() => {
-      enemies.forEach(e => { createExplosion(e.x, e.y, 270, 20); score += 50 * combo; });
-      enemies = [];
-      screenShake = 25;
-    }, 300);
-    superParticles(260, 290, 120);
-    lvl.textContent = '🌑 AGUJERO NEGRO! 🌑';
-    lvl.style.color = '#7733ff';
-
-  } else if (cf.attack === 'light') {
-    // Light speed: shoot 50 rapid beams in all directions
-    for (let i = 0; i < 50; i++) {
-      const angle = (Math.PI * 2 / 50) * i;
-      fireballs.push({
-        x: kitsune.x, y: kitsune.y,
-        vx: Math.cos(angle) * 22, vy: Math.sin(angle) * 22,
-        size: 12, life: 60, fruit: cf, phase: 0, bounces: 0, piercing: true
-      });
-    }
-    superParticles(50, 60, 80);
-    lvl.textContent = '✨ EXPLOSION DE LUZ! ✨';
-    lvl.style.color = '#ffee00';
-
-  } else if (cf.attack === 'rubber') {
-    // Rubber barrage: tons of bouncy balls everywhere
-    for (let i = 0; i < 30; i++) {
-      const angle = (Math.PI * 2 / 30) * i + Math.random() * 0.3;
-      fireballs.push({
-        x: kitsune.x, y: kitsune.y,
-        vx: Math.cos(angle) * (8 + Math.random() * 6),
-        vy: Math.sin(angle) * (8 + Math.random() * 6),
-        size: 14, life: 150, fruit: cf, phase: Math.random() * 6, bounces: 6, piercing: false
-      });
-    }
-    superParticles(330, 350, 80);
-    lvl.textContent = '🟣 REBOTE TOTAL! 🟣';
-    lvl.style.color = '#ff66aa';
-
-  } else if (cf.attack === 'dragon') {
-    // Dragon rage: giant fire breath beam + kill all
-    enemies.forEach(e => { createExplosion(e.x, e.y, 120, 25); score += 50 * combo; });
-    enemies = [];
-    // Spawn massive dragon fireballs
-    for (let i = 0; i < 8; i++) {
-      const angle = (Math.PI * 2 / 8) * i;
-      fireballs.push({
-        x: kitsune.x, y: kitsune.y,
-        vx: Math.cos(angle) * 6, vy: Math.sin(angle) * 6,
-        size: 45, life: 100, fruit: cf, phase: 0, bounces: 0, piercing: true
-      });
-    }
-    superParticles(100, 140, 120);
-    screenShake = 30;
-    superAttackTimer = 150;
-    lvl.textContent = '🐉 FURIA DEL DRAGON! 🐉';
-    lvl.style.color = '#00ff55';
-
-  } else if (cf.attack === 'leopard') {
-    // Leopard rush: ultra fast multi-claw burst
-    for (let w = 0; w < 5; w++) {
-      setTimeout(() => {
-        if (!gameStarted) return;
-        for (let i = 0; i < 12; i++) {
-          const angle = (Math.PI * 2 / 12) * i + w * 0.3;
-          fireballs.push({
-            x: kitsune.x, y: kitsune.y,
-            vx: Math.cos(angle) * 16, vy: Math.sin(angle) * 16,
-            size: 12, life: 50, fruit: cf, phase: Math.random() * 6, bounces: 0, piercing: false
-          });
-        }
-        screenShake = 8;
-      }, w * 150);
-    }
-    superParticles(25, 40, 80);
-    lvl.textContent = '🐆 ZARPAZO SALVAJE! 🐆';
-    lvl.style.color = '#ffaa00';
-
-  } else if (cf.attack === 'buddha') {
-    // Buddha enlightenment: massive golden shockwave, pushes + damages all
-    enemies.forEach(e => {
-      const dx = e.x - kitsune.x;
-      const dy = e.y - kitsune.y;
-      const d = Math.sqrt(dx * dx + dy * dy) || 1;
-      e.x += (dx / d) * 200;
-      e.y += (dy / d) * 200;
-      e.hp -= 2;
-      createExplosion(e.x, e.y, 50, 12);
-      if (e.hp <= 0) { score += 50 * combo; }
-    });
-    enemies = enemies.filter(e => e.hp > 0);
-    superParticles(45, 55, 120);
-    superAttackTimer = 150;
-    screenShake = 25;
-    // Heal 1 heart!
-    health = Math.min(5, health + 1);
-    lvl.textContent = '🟡 ILUMINACION BUDDHA! +❤️ 🟡';
-    lvl.style.color = '#ffcc00';
-  }
-
-  lvl.style.opacity = 1;
-  setTimeout(() => { lvl.style.opacity = 0; }, 1800);
+  runSuper(currentFruit, SUPERS[currentFruit.name] || SUPERS._default);
   updateUI();
 }
 
