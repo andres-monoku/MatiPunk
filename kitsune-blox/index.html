@@ -275,7 +275,7 @@ function makePlayer(id, fruit, x) {
     vx: 0, vy: 0, facing: 1,
     size: 40, tailPhase: 0, numTails: 3, eyeGlow: 0, breathPhase: 0,
     fruit, power: 0, health: 5, alive: true,
-    superActive: false, superTimer: 0, superType: 'kitsune',
+    superActive: false, superTimer: 0, superMax: 120, superType: 'kitsune',
     shootCD: 0, meleeCombo: 0, meleeComboTimer: 0
   };
 }
@@ -516,6 +516,7 @@ let superAttackType = 'kitsune';
 function activateSuperAttackFor(p) {
   bindPlayer(p);
   activateSuperAttack();
+  p.superMax = superAttackTimer; // duracion real del super (120/150/180...)
   commitPlayer(p);
 }
 
@@ -2910,9 +2911,9 @@ function draw() {
     drawKitsune();
     if (p.superActive) {
       const cf = p.fruit;
-      const maxT = p.superTimer > 120 ? 150 : 120;
-      const wave = (maxT - p.superTimer) * 8;
-      const alpha = p.superTimer / maxT * 0.5;
+      const maxT = p.superMax || 120;
+      const wave = Math.max(0, (maxT - p.superTimer) * 8);
+      const alpha = Math.max(0, Math.min(0.5, p.superTimer / maxT * 0.5));
       ctx.beginPath();
       ctx.arc(p.x, p.y, wave, 0, Math.PI * 2);
       ctx.strokeStyle = cf.glow + Math.round(alpha * 255).toString(16).padStart(2,'0');
