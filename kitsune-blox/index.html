@@ -1732,65 +1732,118 @@ function drawFormRubber(k, lb) {
 }
 
 // ====== FORM: DRAGON ======
+// Dragon oriental verde con astas doradas, melena negra y anillos dorados
 function drawFormDragon(k, lb) {
-  // Dragon wings
-  for (let s = -1; s <= 1; s += 2) {
-    ctx.beginPath(); ctx.moveTo(-5, -10);
-    ctx.lineTo(s*20, -45 + Math.sin(k.tailPhase)*10);
-    ctx.lineTo(s*50, -35 + Math.sin(k.tailPhase+0.5)*8);
-    ctx.lineTo(s*55, -15 + Math.sin(k.tailPhase+1)*6);
-    ctx.lineTo(s*40, -5);
-    ctx.lineTo(s*15, 0);
-    ctx.fillStyle = '#00aa3366'; ctx.shadowColor = '#00ff55'; ctx.shadowBlur = 15; ctx.fill();
-    ctx.strokeStyle = '#00ff55'; ctx.lineWidth = 1.5; ctx.stroke();
-    // Wing membrane lines
-    ctx.strokeStyle = '#00cc4433'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(-5,-10); ctx.lineTo(s*50,-35 + Math.sin(k.tailPhase+0.5)*8); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(-5,-10); ctx.lineTo(s*55,-15 + Math.sin(k.tailPhase+1)*6); ctx.stroke();
+  const t = k.tailPhase;
+  const g1 = '#3aa84a', g2 = '#1f7a33', gD = '#114a20';
+  const gold = '#e8b53a', goldHi = '#ffe07a', goldD = '#a8761c';
+  const mane = '#181a1f';
+  const spk = (x, y, len, w, ang, col) => {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    ctx.beginPath(); ctx.moveTo(-w, 0); ctx.lineTo(0, -len); ctx.lineTo(w, 0); ctx.closePath();
+    ctx.fillStyle = col; ctx.fill(); ctx.restore();
+  };
+  const goldRing = (cx, cy, r) => {
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = gold; ctx.lineWidth = 4; ctx.shadowColor = '#ffcc33'; ctx.shadowBlur = 14; ctx.stroke();
+    ctx.strokeStyle = goldHi; ctx.lineWidth = 1.5; ctx.shadowBlur = 0; ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx, cy + r, 3, 0, Math.PI * 2);
+    ctx.fillStyle = '#fff3b0'; ctx.shadowColor = '#ffdd33'; ctx.shadowBlur = 12; ctx.fill(); ctx.shadowBlur = 0;
+  };
+
+  // --- Aura ---
+  ctx.save(); ctx.shadowColor = '#ffcc33'; ctx.shadowBlur = 26;
+  ctx.beginPath(); ctx.ellipse(0, -4, 42, 48, 0, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,200,60,0.08)'; ctx.fill(); ctx.restore();
+
+  // --- Cola serpentina (segmentos verdes que ondulan) con espinas doradas ---
+  const segs = 11;
+  for (let i = segs - 1; i >= 0; i--) {
+    const f = i / segs;
+    const px = Math.sin(f * 5 + t) * (20 * f);
+    const py = 18 + f * 50;
+    const r = 13 * (1 - f) + 3;
+    if (i < segs - 1) spk(px, py - r, 9 * (1 - f) + 3, 3, Math.sin(f * 5 + t) * 0.4, gold);
+    ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2);
+    ctx.fillStyle = i % 2 ? g1 : g2; ctx.fill();
+    ctx.strokeStyle = gD; ctx.lineWidth = 1; ctx.stroke();
   }
-  ctx.shadowBlur = 0;
-  // Long dragon tail
-  ctx.beginPath(); ctx.moveTo(-18, 5);
-  ctx.quadraticCurveTo(-40, 15 + Math.sin(k.tailPhase)*10, -55, 5 + Math.sin(k.tailPhase*0.8)*15);
-  ctx.quadraticCurveTo(-70, -5 + Math.sin(k.tailPhase+1)*10, -80, Math.sin(k.tailPhase*1.2)*20);
-  ctx.lineWidth = 10; ctx.strokeStyle = '#008833'; ctx.stroke();
-  ctx.lineWidth = 5; ctx.strokeStyle = '#00cc44'; ctx.stroke();
-  // Tail spikes
-  for (let i = 0; i < 3; i++) {
-    const tx = -30 - i*18; const ty = 5 + Math.sin(k.tailPhase + i*0.5) * 10;
-    ctx.beginPath(); ctx.moveTo(tx-3, ty); ctx.lineTo(tx, ty-10); ctx.lineTo(tx+3, ty);
-    ctx.fillStyle = '#00ff55'; ctx.fill();
+
+  // --- Astas doradas ramificadas ---
+  for (const s of [-1, 1]) {
+    ctx.strokeStyle = gold; ctx.lineCap = 'round'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(s * 6, -38); ctx.quadraticCurveTo(s * 24, -54, s * 19, -76); ctx.stroke();
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(s * 15, -52); ctx.lineTo(s * 33, -58); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(s * 17, -62); ctx.lineTo(s * 33, -70); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(s * 19, -72); ctx.lineTo(s * 10, -84); ctx.stroke();
+    ctx.strokeStyle = goldHi; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(s * 6, -38); ctx.quadraticCurveTo(s * 24, -54, s * 19, -76); ctx.stroke();
+    ctx.lineCap = 'butt';
   }
-  // Body (dragon)
-  ctx.beginPath(); ctx.ellipse(0, 5, 32, 22, 0, 0, Math.PI*2);
-  const bg = ctx.createLinearGradient(-32,-17,32,27);
-  bg.addColorStop(0,'#006622'); bg.addColorStop(0.5,'#009933'); bg.addColorStop(1,'#004411');
-  ctx.fillStyle = bg; ctx.fill(); ctx.strokeStyle = '#00cc44'; ctx.lineWidth = 2; ctx.stroke();
-  // Scales pattern
-  ctx.strokeStyle = '#00ff5522'; ctx.lineWidth = 1;
-  for (let r = 0; r < 3; r++) for (let c = -2; c <= 2; c++) {
-    ctx.beginPath(); ctx.arc(c*10, r*8-5, 6, 0, Math.PI); ctx.stroke();
+
+  // --- Melena negra espinosa ---
+  ctx.beginPath();
+  const N = 20, R1 = 36, R2 = 23;
+  for (let i = 0; i <= N; i++) {
+    const a = (Math.PI * 2 / N) * i;
+    const r = i % 2 ? R1 : R2;
+    const x = Math.cos(a) * r, y = -18 + Math.sin(a) * r * 0.9;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
   }
-  // Belly plates
-  ctx.beginPath(); ctx.ellipse(0, 12, 18, 8, 0, 0, Math.PI*2); ctx.fillStyle = '#44bb6633'; ctx.fill();
-  // Head (dragon, horned)
-  ctx.beginPath(); ctx.ellipse(28, -5, 20, 17, -0.1, 0, Math.PI*2);
-  ctx.fillStyle = '#007722'; ctx.fill(); ctx.strokeStyle = '#00cc44'; ctx.lineWidth = 1.5; ctx.stroke();
-  // Horns
-  ctx.fillStyle = '#ccaa44';
-  ctx.beginPath(); ctx.moveTo(18,-18); ctx.lineTo(10,-42); ctx.lineTo(15,-38); ctx.lineTo(22,-20); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(34,-18); ctx.lineTo(40,-44); ctx.lineTo(44,-38); ctx.lineTo(38,-20); ctx.fill();
-  // Snout (longer)
-  ctx.beginPath(); ctx.ellipse(43, 0, 10, 7, 0, 0, Math.PI*2); ctx.fillStyle = '#006622'; ctx.fill();
-  // Nostrils with smoke
-  ctx.fillStyle = '#004400';
-  ctx.beginPath(); ctx.arc(50, -2, 2, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(50, 3, 2, 0, Math.PI*2); ctx.fill();
-  // Teeth
+  ctx.closePath(); ctx.fillStyle = mane; ctx.fill();
+
+  // --- Brazos verdes con garras + anillos dorados flotantes ---
+  for (const s of [-1, 1]) {
+    const ax = s * 30, bob = s === -1 ? lb * 0.5 : -lb * 0.5;
+    const ag = ctx.createLinearGradient(ax - 10, -6, ax + 10, 22);
+    ag.addColorStop(0, g1); ag.addColorStop(1, g2);
+    ctx.fillStyle = ag;
+    ctx.beginPath(); ctx.ellipse(ax, 6 + bob, 9, 18, s * 0.2, 0, Math.PI * 2); ctx.fill();
+    // garras doradas
+    ctx.fillStyle = gold;
+    for (let c = -1; c <= 1; c++) { ctx.beginPath(); ctx.moveTo(ax + c * 5, 22 + bob); ctx.lineTo(ax + c * 5 - 2, 30 + bob); ctx.lineTo(ax + c * 5 + 2, 30 + bob); ctx.closePath(); ctx.fill(); }
+    goldRing(ax + s * 6, 12 + bob, 11);
+  }
+
+  // --- Torso verde con escamas doradas ---
+  ctx.beginPath();
+  ctx.moveTo(-18, -8); ctx.lineTo(18, -8);
+  ctx.quadraticCurveTo(22, 6, 14, 22); ctx.lineTo(-14, 22);
+  ctx.quadraticCurveTo(-22, 6, -18, -8); ctx.closePath();
+  const bg = ctx.createLinearGradient(-18, -8, 18, 22);
+  bg.addColorStop(0, g1); bg.addColorStop(1, gD);
+  ctx.fillStyle = bg; ctx.fill();
+  ctx.fillStyle = '#d8e88a';
+  for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.ellipse(0, -2 + i * 6, 8 - i, 3, 0, 0, Math.PI * 2); ctx.fill(); }
+
+  // --- Cabeza de dragon verde ---
+  ctx.beginPath(); ctx.ellipse(0, -26, 16, 14, 0, 0, Math.PI * 2);
+  const hg = ctx.createLinearGradient(0, -40, 0, -10);
+  hg.addColorStop(0, g1); hg.addColorStop(1, g2);
+  ctx.fillStyle = hg; ctx.fill(); ctx.strokeStyle = gD; ctx.lineWidth = 1.5; ctx.stroke();
+  // ceja/escama dorada
+  ctx.fillStyle = gold;
+  ctx.beginPath(); ctx.moveTo(-13, -32); ctx.lineTo(-2, -34); ctx.lineTo(-4, -28); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(13, -32); ctx.lineTo(2, -34); ctx.lineTo(4, -28); ctx.closePath(); ctx.fill();
+  // hocico + boca abierta
+  ctx.beginPath(); ctx.ellipse(0, -16, 9, 6, 0, 0, Math.PI * 2); ctx.fillStyle = g2; ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-8, -14); ctx.quadraticCurveTo(0, -6, 8, -14); ctx.lineTo(6, -10); ctx.quadraticCurveTo(0, -5, -6, -10); ctx.closePath();
+  ctx.fillStyle = '#3a0a0a'; ctx.fill();
   ctx.fillStyle = '#fff';
-  for (let t = 0; t < 4; t++) { ctx.beginPath(); ctx.moveTo(40+t*3, 6); ctx.lineTo(41+t*3, 10); ctx.lineTo(42+t*3, 6); ctx.fill(); }
-  drawEyes(23, -8, 35, -8, '#00ff55');
-  drawLegs('#005518', '#00ff5566', lb, 16, -10, 18, 16);
+  for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(i * 4 - 1, -12); ctx.lineTo(i * 4, -8); ctx.lineTo(i * 4 + 1, -12); ctx.closePath(); ctx.fill(); }
+  // ojos dorados brillantes
+  for (const s of [-1, 1]) {
+    ctx.beginPath(); ctx.ellipse(s * 6, -28, 3.5, 4.5, s * 0.3, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffd23a'; ctx.shadowColor = '#ffe07a'; ctx.shadowBlur = 14; ctx.fill();
+    ctx.beginPath(); ctx.ellipse(s * 6, -28, 1, 4, 0, 0, Math.PI * 2); ctx.fillStyle = '#1a1200'; ctx.shadowBlur = 0; ctx.fill();
+  }
+  // bigotes (barbas) doradas
+  ctx.strokeStyle = goldHi; ctx.lineWidth = 1.5;
+  for (const s of [-1, 1]) {
+    ctx.beginPath(); ctx.moveTo(s * 8, -16);
+    ctx.quadraticCurveTo(s * 26, -10 + Math.sin(t) * 3, s * 30, 6 + Math.sin(t + 1) * 4); ctx.stroke();
+  }
 }
 
 // ====== FORM: LEOPARD ======
