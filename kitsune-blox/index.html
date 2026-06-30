@@ -653,7 +653,7 @@ const bloxFruits = [
   { name: 'Blizzard', emoji: '🌨️', color1: '#33aadd', color2: '#cceeff', glow: '#66ccff',
     attack: 'ice',     desc: 'Tormenta helada!',     speed: 11, size: 14, count: 3, special: 'freeze',    tier: 'B-' },
   { name: 'Yeti',     emoji: '❄️', color1: '#88ccee', color2: '#ffffff', glow: '#aaddff',
-    attack: 'ice',     desc: 'Garra congelante!',    speed: 9,  size: 18, count: 2, special: 'freeze',    tier: 'B-' },
+    attack: 'ice',     desc: 'Garra congelante!',    speed: 9,  size: 18, count: 2, special: 'freeze',    tier: 'B-', beastForm: 'yeti' },
   // ===== C =====
   { name: 'Light',    emoji: '✨', color1: '#ffee00', color2: '#ffffff', glow: '#ffcc00',
     attack: 'light',   desc: 'Rayo de luz!',         speed: 20, size: 10, count: 2, special: null,        tier: 'C' },
@@ -796,6 +796,8 @@ function drawKitsune() {
     drawFormKitsune(k, lb);
   } else if (cf.beastForm === 'mammoth') {
     drawFormMammoth(k, lb);
+  } else if (cf.beastForm === 'yeti') {
+    drawFormYeti(k, lb);
   } else if (cf.beastForm === 'dragon') {
     drawFormDragon(k, lb);
   } else if (cf.beastForm === 'leopard') {
@@ -957,6 +959,127 @@ function drawFormMammoth(k, lb) {
   // oreja
   ctx.beginPath(); ctx.ellipse(20, 0, 10, 14, 0.3, 0, Math.PI * 2);
   ctx.fillStyle = '#1c1210'; ctx.fill(); ctx.strokeStyle = '#3a2a22'; ctx.lineWidth = 1.5; ctx.stroke();
+}
+
+// ====== FORM: YETI (titan de hielo con astas) ======
+function drawFormYeti(k, lb) {
+  const glow = '#3ad0ff';
+  const fur = '#eaf4ff', furSh = '#bcd8f0';
+  const ice1 = '#bfe0f5', ice2 = '#7fb2dd', ice3 = '#5188bc';
+  const antler = '#6b5238', antlerHi = '#9a7a52';
+  const pants = '#161d2b';
+  const loin = '#b89c6a', loinSh = '#8f7548';
+  const lbA = lb * 0.5;
+
+  const tuft = (x, y, len, w, ang, col) => {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    ctx.beginPath(); ctx.moveTo(-w, 0); ctx.lineTo(0, -len); ctx.lineTo(w, 0); ctx.closePath();
+    ctx.fillStyle = col; ctx.fill(); ctx.restore();
+  };
+  const clawHand = (cx, cy) => {
+    ctx.fillStyle = fur; ctx.shadowColor = furSh; ctx.shadowBlur = 8;
+    ctx.beginPath(); ctx.arc(cx, cy, 9, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+    ctx.fillStyle = '#dfeeff';
+    for (let c = -1; c <= 1; c++) {
+      ctx.beginPath(); ctx.moveTo(cx + c * 5, cy + 4); ctx.lineTo(cx + c * 5 - 2, cy + 12); ctx.lineTo(cx + c * 5 + 2, cy + 12); ctx.closePath(); ctx.fill();
+    }
+  };
+
+  // --- Aura cian ---
+  ctx.save(); ctx.shadowColor = glow; ctx.shadowBlur = 30;
+  ctx.beginPath(); ctx.ellipse(0, -6, 42, 52, 0, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(58,208,255,0.10)'; ctx.fill();
+  ctx.restore();
+
+  // --- Pantalon oscuro + pies peludos ---
+  ctx.fillStyle = pants;
+  ctx.beginPath(); ctx.moveTo(-20, 12); ctx.lineTo(-26, 40 + lbA); ctx.lineTo(-7, 40 + lbA); ctx.lineTo(-4, 14); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(20, 12); ctx.lineTo(26, 40 - lbA); ctx.lineTo(7, 40 - lbA); ctx.lineTo(4, 14); ctx.closePath(); ctx.fill();
+  for (const s of [-1, 1]) {
+    const fx = s * 17, fb2 = s === -1 ? lbA : -lbA;
+    ctx.fillStyle = fur; ctx.shadowColor = furSh; ctx.shadowBlur = 6;
+    ctx.beginPath(); ctx.ellipse(fx, 42 + fb2, 12, 7, 0, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+    ctx.fillStyle = '#dfeeff';
+    for (let c = -1; c <= 1; c++) { ctx.beginPath(); ctx.moveTo(fx + c * 5, 46 + fb2); ctx.lineTo(fx + c * 5 - 2, 52 + fb2); ctx.lineTo(fx + c * 5 + 2, 52 + fb2); ctx.closePath(); ctx.fill(); }
+  }
+
+  // --- Brazos musculosos con garras (detras del torso) ---
+  for (const s of [-1, 1]) {
+    const ax = s * 30, bob = s === -1 ? lbA : -lbA;
+    const ag = ctx.createLinearGradient(ax - 12, -14, ax + 12, 24);
+    ag.addColorStop(0, ice1); ag.addColorStop(1, ice3);
+    ctx.fillStyle = ag;
+    ctx.beginPath(); ctx.ellipse(ax, 4 + bob, 11, 22, 0, 0, Math.PI * 2); ctx.fill();
+    tuft(ax, -12 + bob, 14, 8, s * 0.3, fur);       // pelaje de hombro
+    clawHand(ax, 26 + bob);
+  }
+
+  // --- Taparrabos de pelaje ---
+  ctx.fillStyle = loin;
+  ctx.beginPath(); ctx.moveTo(-12, 14); ctx.lineTo(12, 14); ctx.lineTo(8, 38);
+  ctx.lineTo(4, 30); ctx.lineTo(0, 42); ctx.lineTo(-4, 30); ctx.lineTo(-8, 38); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = loinSh; ctx.lineWidth = 1.5;
+  for (let i = -2; i <= 2; i++) { ctx.beginPath(); ctx.moveTo(i * 4, 16); ctx.lineTo(i * 4 + 1, 36); ctx.stroke(); }
+
+  // --- Torso musculoso de hielo con grietas cian ---
+  const tg = ctx.createLinearGradient(-22, -18, 22, 18);
+  tg.addColorStop(0, ice1); tg.addColorStop(0.5, ice2); tg.addColorStop(1, ice3);
+  ctx.fillStyle = tg;
+  ctx.beginPath(); ctx.moveTo(-21, -16); ctx.lineTo(21, -16);
+  ctx.quadraticCurveTo(25, -2, 16, 16); ctx.lineTo(-16, 16);
+  ctx.quadraticCurveTo(-25, -2, -21, -16); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = glow; ctx.lineWidth = 2; ctx.shadowColor = glow; ctx.shadowBlur = 12;
+  ctx.beginPath(); ctx.moveTo(0, -12); ctx.lineTo(0, 10); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-10, -6); ctx.lineTo(-6, 4); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(10, -6); ctx.lineTo(6, 4); ctx.stroke();
+  ctx.shadowBlur = 0;
+  // pectorales
+  ctx.strokeStyle = ice3; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(-7, -8, 6, 0, 1.4); ctx.stroke();
+  ctx.beginPath(); ctx.arc(7, -8, 6, 1.7, 3.1); ctx.stroke();
+
+  // --- Melena de pelaje blanca (collar espinoso) ---
+  ctx.beginPath();
+  const N = 16, R1 = 31, R2 = 22;
+  for (let i = 0; i <= N; i++) {
+    const a = (Math.PI * 2 / N) * i;
+    const r = i % 2 ? R1 : R2;
+    const x = Math.cos(a) * r, y = -22 + Math.sin(a) * r * 0.85;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.fillStyle = fur; ctx.shadowColor = furSh; ctx.shadowBlur = 10; ctx.fill(); ctx.shadowBlur = 0;
+
+  // --- Astas marrones ramificadas ---
+  for (const s of [-1, 1]) {
+    ctx.strokeStyle = antler; ctx.lineCap = 'round';
+    ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.moveTo(s * 8, -32); ctx.quadraticCurveTo(s * 22, -46, s * 17, -66); ctx.stroke();
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(s * 15, -50); ctx.lineTo(s * 28, -55); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(s * 16, -60); ctx.lineTo(s * 8, -70); ctx.stroke();
+    ctx.lineWidth = 2; ctx.strokeStyle = antlerHi;
+    ctx.beginPath(); ctx.moveTo(s * 8, -32); ctx.quadraticCurveTo(s * 22, -46, s * 17, -66); ctx.stroke();
+    ctx.lineCap = 'butt';
+  }
+
+  // --- Cara helada ---
+  const fg = ctx.createLinearGradient(0, -40, 0, -8);
+  fg.addColorStop(0, '#eaf4ff'); fg.addColorStop(1, '#b8d6ee');
+  ctx.fillStyle = fg;
+  ctx.beginPath(); ctx.ellipse(0, -24, 15, 16, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0, -16, 9, 7, 0, 0, Math.PI * 2); ctx.fillStyle = '#cfe6f7'; ctx.fill();
+  ctx.beginPath(); ctx.arc(0, -18, 2.5, 0, Math.PI * 2); ctx.fillStyle = '#3a4a5a'; ctx.fill();
+  // colmillos
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.moveTo(-4, -12); ctx.lineTo(-5, -7); ctx.lineTo(-2, -12); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(4, -12); ctx.lineTo(5, -7); ctx.lineTo(2, -12); ctx.closePath(); ctx.fill();
+  // ojos rosados brillantes
+  for (const s of [-1, 1]) {
+    ctx.beginPath(); ctx.ellipse(s * 6, -26, 3.5, 5, s * 0.3, 0, Math.PI * 2);
+    ctx.fillStyle = '#ff4db0'; ctx.shadowColor = '#ff79c8'; ctx.shadowBlur = 16; ctx.fill();
+  }
+  ctx.shadowBlur = 0;
 }
 
 // ====== FORM: HUMAN (personaje de la imagen) ======
