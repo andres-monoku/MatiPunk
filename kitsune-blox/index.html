@@ -164,7 +164,7 @@
     🖱️ 1 jugador: mueve el mouse, click para atacar, Espacio = súper<br>
     ⌨️ 2-3 jugadores (cada uno con su parte del teclado):<br>
     🦣 P1: mover WASD · disparar F · súper G<br>
-    🦊 P2: mover Flechas · disparar . · súper /<br>
+    🦊 P2: mover Flechas · disparar Espacio · súper M<br>
     ❄️ P3: mover IJKL · disparar U · súper O<br>
     🍎 Come frutas Blox para cambiar tu poder!
   </div>
@@ -244,7 +244,7 @@ const keys = new Set();
 // Configuracion de controles por jugador (codigos de e.code)
 const PLAYER_CONTROLS = [
   { up: 'KeyW', down: 'KeyS', left: 'KeyA', right: 'KeyD', shoot: 'KeyF', sup: 'KeyG' },
-  { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', shoot: 'Period', sup: 'Slash' },
+  { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', shoot: 'Space', sup: 'KeyM' },
   { up: 'KeyI', down: 'KeyK', left: 'KeyJ', right: 'KeyL', shoot: 'KeyU', sup: 'KeyO' },
 ];
 const PLAYER_LABELS = ['P1', 'P2', 'P3'];
@@ -321,9 +321,9 @@ canvas.addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
   keys.add(e.code);
   if (!gameStarted) return;
+  if (e.code === 'Space') e.preventDefault(); // evita scroll
   // 1 jugador clasico: Espacio = super del jugador 1
-  if (e.code === 'Space') {
-    e.preventDefault();
+  if (numPlayers === 1 && e.code === 'Space') {
     const p = players[0];
     if (p && p.alive && p.power >= 100) activateSuperAttackFor(p);
     return;
