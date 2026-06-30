@@ -1848,51 +1848,86 @@ function drawFormDragon(k, lb) {
 }
 
 // ====== FORM: LEOPARD ======
+// Hombre-leopardo musculoso (bipedo) estilo Blox Fruits
 function drawFormLeopard(k, lb) {
-  // Long tail
-  ctx.beginPath(); ctx.moveTo(-15, 5);
-  ctx.quadraticCurveTo(-35, -10 + Math.sin(k.tailPhase)*12, -55, 5 + Math.sin(k.tailPhase*0.9)*15);
-  ctx.quadraticCurveTo(-65, 15, -70, 10 + Math.sin(k.tailPhase+1)*8);
-  ctx.lineWidth = 7; ctx.strokeStyle = '#cc7700'; ctx.stroke();
-  ctx.lineWidth = 4; ctx.strokeStyle = '#ffaa33'; ctx.stroke();
-  // Spots on tail
-  ctx.fillStyle = '#66330066';
-  for (let i = 0; i < 4; i++) {
-    const tx = -25 - i*12; const ty = Math.sin(k.tailPhase + i*0.4) * 10;
-    ctx.beginPath(); ctx.arc(tx, ty, 3, 0, Math.PI*2); ctx.fill();
+  const fur = '#e0a83a', furD = '#c8902a', spot = '#1e150e';
+  const cream = '#f1e7cd', creamSh = '#d6c9a4';
+  const pants = '#15171c', claw = '#efe6c8';
+  const lbA = lb * 0.5;
+  const dot = (x, y, r) => { ctx.beginPath(); ctx.ellipse(x, y, r, r * 0.8, 0, 0, Math.PI * 2); ctx.fillStyle = spot; ctx.fill(); };
+
+  // --- Aura ---
+  ctx.save(); ctx.shadowColor = '#ffaa33'; ctx.shadowBlur = 24;
+  ctx.beginPath(); ctx.ellipse(0, -4, 40, 48, 0, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,170,40,0.08)'; ctx.fill(); ctx.restore();
+
+  // --- Cola con manchas ---
+  ctx.beginPath(); ctx.moveTo(-12, 16);
+  ctx.quadraticCurveTo(-42, 22 + Math.sin(k.tailPhase) * 6, -46, 44 + Math.sin(k.tailPhase) * 8);
+  ctx.quadraticCurveTo(-48, 58, -36, 60 + Math.sin(k.tailPhase + 1) * 4);
+  ctx.lineWidth = 9; ctx.strokeStyle = fur; ctx.lineCap = 'round'; ctx.stroke();
+  ctx.lineWidth = 4; ctx.strokeStyle = furD; ctx.stroke(); ctx.lineCap = 'butt';
+  dot(-40, 30, 2.4); dot(-46, 46, 2.4); dot(-40, 56, 2.2);
+
+  // --- Piernas (pantalon negro) + garras ---
+  ctx.fillStyle = pants;
+  ctx.beginPath(); ctx.moveTo(-16, 12); ctx.lineTo(-20, 42 + lbA); ctx.lineTo(-3, 42 + lbA); ctx.lineTo(-2, 14); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(16, 12); ctx.lineTo(20, 42 - lbA); ctx.lineTo(3, 42 - lbA); ctx.lineTo(2, 14); ctx.closePath(); ctx.fill();
+  for (const s of [-1, 1]) {
+    const fx = s * 12, fb = s === -1 ? lbA : -lbA;
+    ctx.fillStyle = fur; ctx.beginPath(); ctx.ellipse(fx, 43 + fb, 9, 6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = claw; for (let c = -1; c <= 1; c++) { ctx.beginPath(); ctx.moveTo(fx + c * 4, 46 + fb); ctx.lineTo(fx + c * 4 - 1.5, 51 + fb); ctx.lineTo(fx + c * 4 + 1.5, 51 + fb); ctx.closePath(); ctx.fill(); }
   }
-  // Body (sleek, fast)
-  ctx.beginPath(); ctx.ellipse(0, 5, 32, 18, 0, 0, Math.PI*2);
-  const bg = ctx.createLinearGradient(-32,-13,32,23);
-  bg.addColorStop(0,'#ffaa33'); bg.addColorStop(0.5,'#dd8800'); bg.addColorStop(1,'#aa6600');
-  ctx.fillStyle = bg; ctx.fill(); ctx.strokeStyle = '#ffcc66'; ctx.lineWidth = 2; ctx.stroke();
-  // Leopard spots
-  ctx.fillStyle = '#66330088';
-  const spots = [[-12,-2],[5,0],[15,-5],[-5,8],[10,10],[-15,10],[20,5],[-8,-8],[0,-6]];
-  spots.forEach(s => { ctx.beginPath(); ctx.ellipse(s[0],s[1]+5,4,3,Math.random(),0,Math.PI*2); ctx.fill(); });
-  // Belly
-  ctx.beginPath(); ctx.ellipse(0, 14, 20, 6, 0, 0, Math.PI*2); ctx.fillStyle = '#ffddaa44'; ctx.fill();
-  // Head
-  ctx.beginPath(); ctx.ellipse(27, -4, 17, 15, -0.1, 0, Math.PI*2);
-  ctx.fillStyle = '#dd8800'; ctx.fill(); ctx.strokeStyle = '#ffaa33'; ctx.lineWidth = 1.5; ctx.stroke();
-  // Cat ears
-  ctx.fillStyle = '#cc7700';
-  ctx.beginPath(); ctx.moveTo(17,-16); ctx.lineTo(14,-34); ctx.lineTo(24,-20); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(33,-16); ctx.lineTo(38,-35); ctx.lineTo(40,-18); ctx.fill();
-  ctx.fillStyle = '#ffaa5566';
-  ctx.beginPath(); ctx.moveTo(18,-18); ctx.lineTo(16,-28); ctx.lineTo(22,-20); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(34,-17); ctx.lineTo(37,-29); ctx.lineTo(39,-19); ctx.fill();
-  // Nose + whiskers
-  ctx.beginPath(); ctx.ellipse(40, 0, 5, 3, 0, 0, Math.PI*2); ctx.fillStyle = '#aa5500'; ctx.fill();
-  ctx.beginPath(); ctx.arc(43, -1, 2.5, 0, Math.PI*2); ctx.fillStyle = '#331100'; ctx.fill();
-  ctx.strokeStyle = '#fff8'; ctx.lineWidth = 0.8;
-  ctx.beginPath(); ctx.moveTo(43,0); ctx.lineTo(55,-3); ctx.moveTo(43,1); ctx.lineTo(55,2); ctx.moveTo(43,3); ctx.lineTo(53,6); ctx.stroke();
-  // Spots on head
-  ctx.fillStyle = '#66330066';
-  ctx.beginPath(); ctx.arc(20,-2,2.5,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(35,-2,2,0,Math.PI*2); ctx.fill();
-  drawEyes(22, -7, 33, -7, '#ffaa00');
-  drawLegs('#aa6600', '#ffaa0066', lb, 16, -10, 16, 16);
+
+  // --- Brazos musculosos con manchas + garras ---
+  for (const s of [-1, 1]) {
+    const ax = s * 27, bob = s === -1 ? lbA : -lbA;
+    const ag = ctx.createLinearGradient(ax - 11, -14, ax + 11, 18); ag.addColorStop(0, fur); ag.addColorStop(1, furD);
+    ctx.fillStyle = ag; ctx.beginPath(); ctx.ellipse(ax, 2 + bob, 11, 21, s * 0.15, 0, Math.PI * 2); ctx.fill();
+    dot(ax - 3, -8 + bob, 2.6); dot(ax + 3, 3 + bob, 2.6); dot(ax - 1, 13 + bob, 2.2);
+    ctx.fillStyle = cream; ctx.beginPath(); ctx.arc(ax, 23 + bob, 7.5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = claw; for (let c = -1; c <= 1; c++) { ctx.beginPath(); ctx.moveTo(ax + c * 4.5, 27 + bob); ctx.lineTo(ax + c * 4.5 - 1.6, 35 + bob); ctx.lineTo(ax + c * 4.5 + 1.6, 35 + bob); ctx.closePath(); ctx.fill(); }
+  }
+
+  // --- Hombros peludos amarillos ---
+  ctx.fillStyle = fur;
+  ctx.beginPath(); ctx.moveTo(-23, -8); ctx.quadraticCurveTo(0, -28, 23, -8); ctx.lineTo(18, 0); ctx.quadraticCurveTo(0, -16, -18, 0); ctx.closePath(); ctx.fill();
+  dot(-15, -10, 2.6); dot(15, -10, 2.6); dot(0, -17, 2.6); dot(-8, -6, 2.2); dot(8, -6, 2.2);
+
+  // --- Pecho/abdomen crema musculoso ---
+  const tg = ctx.createLinearGradient(0, -12, 0, 18); tg.addColorStop(0, cream); tg.addColorStop(1, creamSh);
+  ctx.fillStyle = tg;
+  ctx.beginPath(); ctx.moveTo(-16, -7); ctx.lineTo(16, -7); ctx.quadraticCurveTo(21, 5, 12, 19); ctx.lineTo(-12, 19); ctx.quadraticCurveTo(-21, 5, -16, -7); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = creamSh; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(0, 15); ctx.stroke();
+  ctx.beginPath(); ctx.arc(-7, -3, 6, -0.3, 1.3); ctx.stroke();
+  ctx.beginPath(); ctx.arc(7, -3, 6, 1.8, 3.3); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-8, 7); ctx.lineTo(8, 7); ctx.stroke();
+
+  // --- Cabeza de leopardo ---
+  const hg = ctx.createLinearGradient(0, -47, 0, -22); hg.addColorStop(0, fur); hg.addColorStop(1, furD);
+  ctx.fillStyle = hg; ctx.beginPath(); ctx.ellipse(0, -34, 15, 14, 0, 0, Math.PI * 2); ctx.fill();
+  // orejas
+  ctx.fillStyle = fur; ctx.beginPath(); ctx.arc(-12, -44, 5, 0, Math.PI * 2); ctx.arc(12, -44, 5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = spot; ctx.beginPath(); ctx.arc(-12, -44, 2.5, 0, Math.PI * 2); ctx.arc(12, -44, 2.5, 0, Math.PI * 2); ctx.fill();
+  // manchas cabeza
+  dot(-9, -40, 2); dot(9, -40, 2); dot(-7, -30, 1.8); dot(7, -30, 1.8);
+  // hocico blanco
+  ctx.fillStyle = '#f6f1e2'; ctx.beginPath(); ctx.ellipse(0, -27, 8, 6, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#3a2a2a'; ctx.beginPath(); ctx.moveTo(-2.5, -30); ctx.lineTo(2.5, -30); ctx.lineTo(0, -27); ctx.closePath(); ctx.fill();
+  // colmillos
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.moveTo(-3, -24); ctx.lineTo(-2, -20); ctx.lineTo(-1, -24); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(3, -24); ctx.lineTo(2, -20); ctx.lineTo(1, -24); ctx.closePath(); ctx.fill();
+  // ojos rojos feroces
+  for (const s of [-1, 1]) {
+    ctx.beginPath(); ctx.ellipse(s * 6, -37, 3.6, 2.7, s * -0.4, 0, Math.PI * 2);
+    ctx.fillStyle = '#ff5a1a'; ctx.shadowColor = '#ff8a3a'; ctx.shadowBlur = 12; ctx.fill(); ctx.shadowBlur = 0;
+    ctx.beginPath(); ctx.ellipse(s * 6, -37, 1, 2.4, 0, 0, Math.PI * 2); ctx.fillStyle = '#2a0a00'; ctx.fill();
+  }
+  // ceja enojada
+  ctx.strokeStyle = spot; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(-12, -41); ctx.lineTo(-2, -38); ctx.moveTo(12, -41); ctx.lineTo(2, -38); ctx.stroke();
 }
 
 // ====== FORM: BUDDHA (golden giant) ======
