@@ -827,14 +827,32 @@ function drawFormHuman(k, lb, cf) {
   ctx.beginPath(); ctx.moveTo(-30, -16); ctx.lineTo(-26, 34); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(30, -16); ctx.lineTo(26, 34); ctx.stroke();
 
-  // --- Piernas (negras, con borde de piel arriba) ---
-  ctx.fillStyle = robe;
-  ctx.fillRect(-11, 16, 9, 24 + lbA);   // pierna izq
-  ctx.fillRect(3, 16, 9, 24 - lbA);     // pierna der
-  ctx.fillStyle = skinDark;             // borde de muslo
-  ctx.fillRect(-11, 16, 9, 4); ctx.fillRect(3, 16, 9, 4);
-  ctx.fillStyle = hairSh;               // pelaje en tobillos
-  ctx.fillRect(-12, 36 + lbA, 11, 5); ctx.fillRect(2, 36 - lbA, 11, 5);
+  if (cf.ghost) {
+    // --- Cola fantasmal ondulada en vez de piernas ---
+    const t = kitsuneFrame * 3;
+    ctx.beginPath();
+    ctx.moveTo(-15, 14);
+    ctx.lineTo(-17, 30);
+    for (let i = 0; i <= 6; i++) {
+      const x = -17 + (34 / 6) * i;
+      const y = 40 + Math.sin(t + i) * 5 + (i % 2 === 0 ? 4 : -4);
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(17, 30); ctx.lineTo(15, 14); ctx.closePath();
+    const gg = ctx.createLinearGradient(0, 14, 0, 44);
+    gg.addColorStop(0, skin); gg.addColorStop(1, 'rgba(170,200,230,0)');
+    ctx.fillStyle = gg; ctx.shadowColor = glow; ctx.shadowBlur = 20; ctx.fill();
+    ctx.shadowBlur = 0;
+  } else {
+    // --- Piernas (negras, con borde de piel arriba) ---
+    ctx.fillStyle = robe;
+    ctx.fillRect(-11, 16, 9, 24 + lbA);   // pierna izq
+    ctx.fillRect(3, 16, 9, 24 - lbA);     // pierna der
+    ctx.fillStyle = skinDark;             // borde de muslo
+    ctx.fillRect(-11, 16, 9, 4); ctx.fillRect(3, 16, 9, 4);
+    ctx.fillStyle = hairSh;               // pelaje en tobillos
+    ctx.fillRect(-12, 36 + lbA, 11, 5); ctx.fillRect(2, 36 - lbA, 11, 5);
+  }
 
   // --- Torso (pecho marron musculoso) ---
   const tg = ctx.createLinearGradient(-16, -20, 16, 14);
