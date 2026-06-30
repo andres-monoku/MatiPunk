@@ -597,8 +597,8 @@ const bloxFruits = [
     attack: 'leopard', desc: 'Telarana letal!',      speed: 12, size: 11, count: 3, special: null,        tier: 'C' },
   { name: 'Sound',    emoji: '🎵', color1: '#cc33cc', color2: '#ff99ff', glow: '#ff66ff',
     attack: 'light',   desc: 'Onda sonora!',         speed: 15, size: 12, count: 3, special: null,        tier: 'C' },
-  { name: 'Ghost',    emoji: '👻', color1: '#556677', color2: '#aabbcc', glow: '#88aacc',
-    attack: 'dark',    desc: 'Posesion!',            speed: 11, size: 18, count: 2, special: 'pierce',    tier: 'C' },
+  { name: 'Ghost',    emoji: '👻', color1: '#556677', color2: '#aabbcc', glow: '#aaccee',
+    attack: 'dark',    desc: 'Posesion!',            speed: 11, size: 18, count: 2, special: 'pierce',    tier: 'C', ghost: true },
   { name: 'Barrier',  emoji: '🛡️', color1: '#88aa33', color2: '#ddff88', glow: '#aacc44',
     attack: 'buddha',  desc: 'Muro defensivo!',      speed: 8,  size: 24, count: 1, special: 'shockwave', tier: 'C' },
   // ===== Pain / Gravity =====
@@ -792,11 +792,24 @@ function drawLegs(color, glowColor, lb, frontX, backX, topY, len) {
 // transformarse en una bestia. Solo cambia el aura segun el color de la fruta.
 function drawFormHuman(k, lb, cf) {
   const glow = cf.glow || '#9b4dff';
-  const skin = '#8a5a3b', skinDark = '#6b4329', skinHi = '#a06f48';
-  const robe = '#16151b', robeHi = '#2c2a33';
-  const hair = '#f2f2f0', hairSh = '#c9c9cf';
-  const horn = '#241f1a', hornHi = '#4a4038';
+  let skin = '#8a5a3b', skinDark = '#6b4329', skinHi = '#a06f48';
+  let robe = '#16151b', robeHi = '#2c2a33';
+  let hair = '#f2f2f0', hairSh = '#c9c9cf';
+  let horn = '#241f1a', hornHi = '#4a4038';
   const lbA = lb * 0.6;
+
+  // ===== Modo FANTASMA: mismo personaje pero translucido y espectral =====
+  if (cf.ghost) {
+    // flota suavemente y se vuelve transparente
+    ctx.translate(0, Math.sin(kitsuneFrame * 2) * 4 - 6);
+    ctx.globalAlpha = 0.42;
+    ctx.shadowColor = glow; ctx.shadowBlur = 25;
+    // paleta lavada en tonos espectrales
+    skin = '#7fa6c2'; skinDark = '#5d83a0'; skinHi = '#a9cae0';
+    robe = '#3a4a5e'; robeHi = '#566a82';
+    hair = '#eaf4ff'; hairSh = '#bcd4e8';
+    horn = '#43586e'; hornHi = '#6a8198';
+  }
 
   // --- Robe / coat detras (con borde de aura del color de la fruta) ---
   ctx.fillStyle = robe;
