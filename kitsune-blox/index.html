@@ -537,40 +537,124 @@ function spawnEnemy() {
 
 // Blox Fruits collection
 // Blox Fruits with unique attack powers
-// tier = rareza (mas arriba en el tier list = mas raro). weight = peso de probabilidad
-// (mientras mas bajo el weight, MENOS posibilidades de salir).
+// tier = rareza (mas arriba en el tier list = mas raro).
+// weight (probabilidad), damage (poder) y points se derivan del tier mas abajo:
+// tier alto => sale MENOS pero pega MAS; tier bajo => sale MAS pero pega MENOS.
+// 'attack' reutiliza uno de los 9 visuales implementados:
+// flame, ice, dark, light, rubber, dragon, leopard, buddha, kitsune.
 const bloxFruits = [
-  { name: 'Leopard', emoji: '🐆', color1: '#ff8800', color2: '#ffcc66', glow: '#ffaa00', points: 40,
-    attack: 'leopard', desc: 'Garras letales!', speed: 14, size: 10, count: 5, damage: 4, special: null,
-    tier: 'SSS', weight: 1 },
-  { name: 'Dragon',  emoji: '🐉', color1: '#00cc44', color2: '#66ff99', glow: '#00ff55', points: 35,
-    attack: 'dragon', desc: 'Aliento devastador!', speed: 7, size: 28, count: 1, damage: 8, special: 'explode',
-    tier: 'SS', weight: 2 },
-  { name: 'Buddha',  emoji: '🟡', color1: '#ffcc00', color2: '#ffffaa', glow: '#ffdd33', points: 30,
-    attack: 'buddha', desc: 'Palma divina!', speed: 6, size: 35, count: 1, damage: 6, special: 'shockwave',
-    tier: 'S', weight: 4 },
-  { name: 'Dark',    emoji: '🌑', color1: '#3300aa', color2: '#7733ff', glow: '#6600ff', points: 25,
-    attack: 'dark', desc: 'Vortice oscuro!', speed: 8, size: 22, count: 1, damage: 4, special: 'pierce',
-    tier: 'A', weight: 7 },
-  { name: 'Light',   emoji: '✨', color1: '#ffee00', color2: '#ffffff', glow: '#ffcc00', points: 25,
-    attack: 'light', desc: 'Rayo de luz!', speed: 20, size: 10, count: 2, damage: 3, special: null,
-    tier: 'A', weight: 7 },
-  { name: 'Flame',   emoji: '🔥', color1: '#ff4400', color2: '#ff8800', glow: '#ff6600', points: 20,
-    attack: 'flame', desc: 'Bolas de fuego!', speed: 11, size: 16, count: 1, damage: 2, special: null,
-    tier: 'B', weight: 13 },
-  { name: 'Ice',     emoji: '❄️', color1: '#00ccff', color2: '#99eeff', glow: '#00e5ff', points: 20,
-    attack: 'ice', desc: 'Cristales de hielo!', speed: 10, size: 14, count: 3, damage: 2, special: 'freeze',
-    tier: 'B', weight: 13 },
-  { name: 'Rubber',  emoji: '🟣', color1: '#cc0066', color2: '#ff66aa', glow: '#ff0088', points: 15,
-    attack: 'rubber', desc: 'Rebote debil!', speed: 9, size: 13, count: 1, damage: 1, special: 'bounce',
-    tier: 'C', weight: 22 },
+  // ===== SSS =====
+  { name: 'Dragon',   emoji: '🐉', color1: '#00cc44', color2: '#66ff99', glow: '#00ff55',
+    attack: 'dragon',  desc: 'Aliento devastador!', speed: 7,  size: 28, count: 1, special: 'explode',   tier: 'SSS' },
+  { name: 'Leopard',  emoji: '🐆', color1: '#ff8800', color2: '#ffcc66', glow: '#ffaa00',
+    attack: 'leopard', desc: 'Garras letales!',     speed: 14, size: 10, count: 5, special: null,        tier: 'SSS' },
+  // ===== SS =====
+  { name: 'Gas',      emoji: '💨', color1: '#33aa33', color2: '#aaff66', glow: '#66ff33',
+    attack: 'dark',    desc: 'Nube toxica!',         speed: 9,  size: 24, count: 1, special: 'pierce',    tier: 'SS' },
+  // ===== S+ =====
+  { name: 'Mammoth',  emoji: '🦣', color1: '#8844cc', color2: '#cc99ff', glow: '#aa66ff',
+    attack: 'dragon',  desc: 'Pisoton sismico!',     speed: 6,  size: 30, count: 1, special: 'shockwave', tier: 'S+' },
+  { name: 'T-Rex',    emoji: '🦖', color1: '#aa5522', color2: '#ee9955', glow: '#cc7733',
+    attack: 'dragon',  desc: 'Mordida brutal!',      speed: 8,  size: 26, count: 1, special: 'explode',   tier: 'S+' },
+  // ===== S- =====
+  { name: 'Dough',    emoji: '🍩', color1: '#ddaa55', color2: '#ffe0a0', glow: '#ffcc66',
+    attack: 'rubber',  desc: 'Golpe de masa!',       speed: 10, size: 18, count: 2, special: 'bounce',    tier: 'S-' },
+  // ===== A =====
+  { name: 'Spirit',   emoji: '👻', color1: '#33ddcc', color2: '#aaffff', glow: '#33ffe5',
+    attack: 'kitsune', desc: 'Fuego espiritual!',    speed: 12, size: 16, count: 1, special: null,        tier: 'A' },
+  { name: 'Control',  emoji: '🌀', color1: '#3355cc', color2: '#88aaff', glow: '#4477ff',
+    attack: 'dark',    desc: 'Domina el espacio!',   speed: 11, size: 18, count: 1, special: 'pierce',    tier: 'A' },
+  // ===== B+ =====
+  { name: 'Venom',    emoji: '🐍', color1: '#7722aa', color2: '#bb66dd', glow: '#aa33cc',
+    attack: 'dark',    desc: 'Veneno mortal!',       speed: 9,  size: 20, count: 1, special: 'pierce',    tier: 'B+' },
+  { name: 'Shadow',   emoji: '🌑', color1: '#220044', color2: '#5522aa', glow: '#7733cc',
+    attack: 'dark',    desc: 'Garra de sombra!',     speed: 10, size: 20, count: 1, special: null,        tier: 'B+' },
+  { name: 'Portal',   emoji: '🌀', color1: '#2266cc', color2: '#66ccff', glow: '#33aaff',
+    attack: 'dark',    desc: 'Salto dimensional!',   speed: 13, size: 16, count: 1, special: 'pierce',    tier: 'B+' },
+  // ===== B- =====
+  { name: 'Buddha',   emoji: '🟡', color1: '#ffcc00', color2: '#ffffaa', glow: '#ffdd33',
+    attack: 'buddha',  desc: 'Palma divina!',        speed: 6,  size: 35, count: 1, special: 'shockwave', tier: 'B-' },
+  { name: 'Phoenix',  emoji: '🔥', color1: '#ff5500', color2: '#ffcc44', glow: '#ff8800',
+    attack: 'flame',   desc: 'Llamas renacientes!',  speed: 12, size: 16, count: 2, special: null,        tier: 'B-' },
+  { name: 'Rumble',   emoji: '⚡', color1: '#ddcc00', color2: '#ffff88', glow: '#ffee33',
+    attack: 'light',   desc: 'Trueno electrico!',    speed: 18, size: 12, count: 2, special: null,        tier: 'B-' },
+  { name: 'Blizzard', emoji: '🌨️', color1: '#33aadd', color2: '#cceeff', glow: '#66ccff',
+    attack: 'ice',     desc: 'Tormenta helada!',     speed: 11, size: 14, count: 3, special: 'freeze',    tier: 'B-' },
+  { name: 'Yeti',     emoji: '❄️', color1: '#88ccee', color2: '#ffffff', glow: '#aaddff',
+    attack: 'ice',     desc: 'Garra congelante!',    speed: 9,  size: 18, count: 2, special: 'freeze',    tier: 'B-' },
+  // ===== C =====
+  { name: 'Light',    emoji: '✨', color1: '#ffee00', color2: '#ffffff', glow: '#ffcc00',
+    attack: 'light',   desc: 'Rayo de luz!',         speed: 20, size: 10, count: 2, special: null,        tier: 'C' },
+  { name: 'Magma',    emoji: '🌋', color1: '#cc3300', color2: '#ff7722', glow: '#ff5500',
+    attack: 'flame',   desc: 'Roca fundida!',        speed: 8,  size: 22, count: 1, special: 'explode',   tier: 'C' },
+  { name: 'Dark',     emoji: '🌑', color1: '#3300aa', color2: '#7733ff', glow: '#6600ff',
+    attack: 'dark',    desc: 'Vortice oscuro!',      speed: 8,  size: 22, count: 1, special: 'pierce',    tier: 'C' },
+  { name: 'Quake',    emoji: '🌊', color1: '#2277aa', color2: '#88ccdd', glow: '#44aacc',
+    attack: 'buddha',  desc: 'Temblor brutal!',      speed: 7,  size: 30, count: 1, special: 'shockwave', tier: 'C' },
+  { name: 'Love',     emoji: '💗', color1: '#ff3399', color2: '#ffaadd', glow: '#ff66bb',
+    attack: 'light',   desc: 'Flechazo!',            speed: 16, size: 12, count: 2, special: null,        tier: 'C' },
+  { name: 'Spider',   emoji: '🕷️', color1: '#882222', color2: '#cc5555', glow: '#bb3333',
+    attack: 'leopard', desc: 'Telarana letal!',      speed: 12, size: 11, count: 3, special: null,        tier: 'C' },
+  { name: 'Sound',    emoji: '🎵', color1: '#cc33cc', color2: '#ff99ff', glow: '#ff66ff',
+    attack: 'light',   desc: 'Onda sonora!',         speed: 15, size: 12, count: 3, special: null,        tier: 'C' },
+  { name: 'Ghost',    emoji: '👻', color1: '#556677', color2: '#aabbcc', glow: '#88aacc',
+    attack: 'dark',    desc: 'Posesion!',            speed: 11, size: 18, count: 2, special: 'pierce',    tier: 'C' },
+  // ===== Pain / Gravity =====
+  { name: 'Pain',     emoji: '🩸', color1: '#990022', color2: '#dd4466', glow: '#cc2244',
+    attack: 'dark',    desc: 'Sello de dolor!',      speed: 10, size: 18, count: 1, special: 'pierce',    tier: 'PG' },
+  { name: 'Gravity',  emoji: '🪐', color1: '#5533aa', color2: '#9977dd', glow: '#7755cc',
+    attack: 'buddha',  desc: 'Meteoros!',            speed: 7,  size: 28, count: 1, special: 'shockwave', tier: 'PG' },
+  // ===== D =====
+  { name: 'Ice',      emoji: '❄️', color1: '#00ccff', color2: '#99eeff', glow: '#00e5ff',
+    attack: 'ice',     desc: 'Cristales de hielo!',  speed: 10, size: 14, count: 3, special: 'freeze',    tier: 'D' },
+  { name: 'Sand',     emoji: '🏜️', color1: '#ccaa55', color2: '#ffe0a0', glow: '#ddbb66',
+    attack: 'flame',   desc: 'Cuchilla de arena!',   speed: 11, size: 14, count: 2, special: null,        tier: 'D' },
+  { name: 'Flame',    emoji: '🔥', color1: '#ff4400', color2: '#ff8800', glow: '#ff6600',
+    attack: 'flame',   desc: 'Bolas de fuego!',      speed: 11, size: 16, count: 1, special: null,        tier: 'D' },
+  { name: 'Diamond',  emoji: '💎', color1: '#33cccc', color2: '#aaffff', glow: '#66ffff',
+    attack: 'ice',     desc: 'Filo de diamante!',    speed: 13, size: 13, count: 1, special: null,        tier: 'D' },
+  { name: 'Falcon',   emoji: '🦅', color1: '#3366aa', color2: '#88bbee', glow: '#5599dd',
+    attack: 'light',   desc: 'Garra del halcon!',    speed: 17, size: 11, count: 2, special: null,        tier: 'D' },
+  { name: 'String',   emoji: '🧵', color1: '#cc4477', color2: '#ff99bb', glow: '#ee6699',
+    attack: 'leopard', desc: 'Hilos cortantes!',     speed: 12, size: 10, count: 3, special: null,        tier: 'D' },
+  // ===== F =====
+  { name: 'Rubber',   emoji: '🟣', color1: '#cc0066', color2: '#ff66aa', glow: '#ff0088',
+    attack: 'rubber',  desc: 'Rebote debil!',        speed: 9,  size: 13, count: 1, special: 'bounce',    tier: 'F' },
+  { name: 'Bomb',     emoji: '💣', color1: '#333333', color2: '#888888', glow: '#ff8800',
+    attack: 'flame',   desc: 'Explosion!',           speed: 10, size: 16, count: 1, special: 'explode',   tier: 'F' },
+  { name: 'Spike',    emoji: '🌵', color1: '#338833', color2: '#88cc66', glow: '#55aa44',
+    attack: 'leopard', desc: 'Pinchos!',             speed: 11, size: 10, count: 3, special: null,        tier: 'F' },
+  { name: 'Smoke',    emoji: '💨', color1: '#666666', color2: '#bbbbbb', glow: '#999999',
+    attack: 'dark',    desc: 'Humareda!',            speed: 10, size: 16, count: 1, special: null,        tier: 'F' },
+  { name: 'Spring',   emoji: '🌀', color1: '#44aa44', color2: '#99dd99', glow: '#66cc66',
+    attack: 'rubber',  desc: 'Resorte loco!',        speed: 12, size: 13, count: 1, special: 'bounce',    tier: 'F' },
+  { name: 'Blade',    emoji: '⚔️', color1: '#888899', color2: '#ddddee', glow: '#aaaacc',
+    attack: 'light',   desc: 'Corte de espada!',     speed: 16, size: 11, count: 1, special: null,        tier: 'F' },
+  { name: 'Rocket',   emoji: '🚀', color1: '#bb3322', color2: '#ee8866', glow: '#dd5533',
+    attack: 'flame',   desc: 'Cohete!',              speed: 14, size: 13, count: 1, special: null,        tier: 'F' },
 ];
+
+// Tablas por tier: arriba en el tier list => menos probabilidad (weight) y mas poder.
+const tierWeight = { SSS:1, SS:2, 'S+':3, 'S-':4, A:6, 'B+':9, 'B-':13, C:18, PG:16, D:24, F:34 };
+const tierDamage = { SSS:10, SS:9, 'S+':7, 'S-':6, A:5, 'B+':4, 'B-':3, C:3, PG:2, D:2, F:1 };
+const tierPoints = { SSS:50, SS:45, 'S+':40, 'S-':35, A:30, 'B+':25, 'B-':22, C:18, PG:16, D:14, F:10 };
+
+// Rellena weight / damage / points de cada fruta a partir de su tier.
+bloxFruits.forEach(f => {
+  if (f.weight == null) f.weight = tierWeight[f.tier] ?? 10;
+  if (f.damage == null) f.damage = tierDamage[f.tier] ?? 1;
+  if (f.points == null) f.points = tierPoints[f.tier] ?? 10;
+});
 
 // Color por tier para mostrar la rareza
 const tierColors = {
-  SSS: '#ff3b3b', SS: '#ff6b3b', 'S+': '#ff9b3b', S: '#ffcb3b',
-  A: '#ffe23b', B: '#9bff3b', C: '#3bffd1', D: '#3b9bff', F: '#9b9b9b'
+  SSS: '#ff3b3b', SS: '#ff6b3b', 'S+': '#ff8b3b', 'S-': '#ffab3b',
+  A: '#ffd23b', 'B+': '#ffe23b', 'B-': '#d2ff3b', C: '#7bff3b',
+  PG: '#3bffa0', D: '#3bd1ff', F: '#9b9b9b'
 };
+
+// Etiqueta visible del tier (Pain/Grav se muestra como "P/G")
+function tierLabel(t) { return t === 'PG' ? 'P/G' : t; }
 
 // Selecciona una fruta segun su peso: las de tier alto (weight bajo) salen menos.
 function pickWeightedFruit() {
@@ -1534,7 +1618,7 @@ function drawFruit(f) {
     ctx.fillStyle = tColor;
     ctx.shadowColor = tColor;
     ctx.shadowBlur = 10;
-    ctx.fillText(d.tier, 0, bob + f.size + 34);
+    ctx.fillText(tierLabel(d.tier), 0, bob + f.size + 34);
     ctx.shadowBlur = 0;
   }
 
@@ -1780,7 +1864,7 @@ function checkCollisions() {
       power = Math.min(100, power + 12);
       // Gain the fruit's power!
       currentFruit = d;
-      showPowerup(`${d.emoji} [${d.tier}] ${d.name} Fruit! ${d.desc} ${d.emoji}`);
+      showPowerup(`${d.emoji} [${tierLabel(d.tier)}] ${d.name} Fruit! ${d.desc} ${d.emoji}`);
       createExplosion(f.x, f.y, 120, 20);
       screenShake = 6;
       fruits.splice(fi, 1);
