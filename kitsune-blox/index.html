@@ -3320,6 +3320,112 @@ function drawBossKuma(b, S) {
   ctx.fillStyle = capDot; for (const dx of [-0.09, 0.02, 0.1]) { ctx.beginPath(); ctx.arc(dx * S, hy - S * 0.18, S * 0.018, 0, Math.PI * 2); ctx.fill(); }
 }
 
+function drawBossMagellan(b, S) {
+  const coat = '#14141b', coatE = '#26262f', wing = '#1c1c26', wingE = '#0f0f18';
+  const maroon = '#6a2a3a', gold = '#d8b23a', skin = '#d6bd9f', skinSh = '#b3986f';
+  const beard = '#11100e', tie = '#1a1e3a', rope = '#d8b84a', glove = '#c9d1dd', gloveL = '#8a95a8';
+  const belt = '#6a4a28', btn = '#8a8a92', pants = '#2a2e34';
+  const hy = -S * 0.8;
+
+  // Alas de murcielago (detras)
+  for (const s of [-1, 1]) {
+    ctx.beginPath();
+    ctx.moveTo(s * S * 0.35, -S * 0.4);
+    ctx.lineTo(s * S * 1.05, -S * 0.5);
+    ctx.lineTo(s * S * 0.85, -S * 0.1);
+    ctx.lineTo(s * S * 1.0, S * 0.1);
+    ctx.lineTo(s * S * 0.7, S * 0.15);
+    ctx.lineTo(s * S * 0.85, S * 0.45);
+    ctx.lineTo(s * S * 0.5, S * 0.3);
+    ctx.lineTo(s * S * 0.4, -S * 0.1);
+    ctx.closePath();
+    ctx.fillStyle = wing; ctx.fill(); ctx.strokeStyle = wingE; ctx.lineWidth = 1.5; ctx.stroke();
+  }
+
+  // Piernas / botas
+  ctx.fillStyle = pants;
+  ctx.fillRect(-S * 0.22, S * 1.05, S * 0.18, S * 0.38);
+  ctx.fillRect(S * 0.04, S * 1.05, S * 0.18, S * 0.38);
+  ctx.fillStyle = '#15151a';
+  ctx.beginPath(); ctx.ellipse(-S * 0.13, S * 1.44, S * 0.13, S * 0.06, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(S * 0.13, S * 1.44, S * 0.13, S * 0.06, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Abrigo negro voluminoso
+  ctx.fillStyle = coat;
+  ctx.beginPath();
+  ctx.moveTo(-S * 0.4, -S * 0.44);
+  ctx.quadraticCurveTo(-S * 0.95, -S * 0.2, -S * 0.78, S * 0.6);
+  ctx.quadraticCurveTo(-S * 0.72, S * 1.1, -S * 0.4, S * 1.2);
+  ctx.lineTo(S * 0.4, S * 1.2);
+  ctx.quadraticCurveTo(S * 0.72, S * 1.1, S * 0.78, S * 0.6);
+  ctx.quadraticCurveTo(S * 0.95, -S * 0.2, S * 0.4, -S * 0.44);
+  ctx.closePath(); ctx.fill(); ctx.strokeStyle = coatE; ctx.lineWidth = 1.5; ctx.stroke();
+  // botones grises doble hilera
+  ctx.fillStyle = btn;
+  for (let i = 0; i < 5; i++) { const yy = -S * 0.1 + i * S * 0.26; ctx.beginPath(); ctx.arc(-S * 0.18, yy, S * 0.028, 0, Math.PI * 2); ctx.arc(S * 0.18, yy, S * 0.028, 0, Math.PI * 2); ctx.fill(); }
+
+  // Cinturon marron + hebilla
+  ctx.fillStyle = belt; ctx.fillRect(-S * 0.5, S * 0.6, S, S * 0.11);
+  ctx.strokeStyle = gold; ctx.lineWidth = S * 0.015; ctx.strokeRect(-S * 0.5, S * 0.6, S, S * 0.11);
+  ctx.fillStyle = gold; ctx.fillRect(-S * 0.07, S * 0.58, S * 0.14, S * 0.15);
+  ctx.fillStyle = belt; ctx.fillRect(-S * 0.04, S * 0.61, S * 0.08, S * 0.09);
+
+  // Solapas granate con emblemas dorados + corbata
+  ctx.fillStyle = maroon;
+  ctx.beginPath(); ctx.moveTo(-S * 0.34, -S * 0.42); ctx.lineTo(-S * 0.05, -S * 0.1); ctx.lineTo(-S * 0.05, -S * 0.42); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(S * 0.34, -S * 0.42); ctx.lineTo(S * 0.05, -S * 0.1); ctx.lineTo(S * 0.05, -S * 0.42); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = gold; // emblemas cruz
+  for (const s of [-1, 1]) { ctx.save(); ctx.translate(s * S * 0.22, -S * 0.34); ctx.fillRect(-S * 0.05, -S * 0.06, S * 0.1, S * 0.12); ctx.fillStyle = maroon; ctx.fillRect(-S * 0.015, -S * 0.05, S * 0.03, S * 0.05); ctx.fillRect(-S * 0.04, -S * 0.01, S * 0.08, S * 0.02); ctx.restore(); ctx.fillStyle = gold; }
+  ctx.fillStyle = tie; ctx.beginPath(); ctx.moveTo(-S * 0.05, -S * 0.36); ctx.lineTo(S * 0.05, -S * 0.36); ctx.lineTo(S * 0.03, S * 0.05); ctx.lineTo(-S * 0.03, S * 0.05); ctx.closePath(); ctx.fill();
+
+  // Cordon dorado en el pecho
+  ctx.strokeStyle = rope; ctx.lineWidth = S * 0.025;
+  ctx.beginPath(); ctx.moveTo(-S * 0.32, -S * 0.28); ctx.quadraticCurveTo(-S * 0.05, S * 0.1, -S * 0.28, S * 0.35); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-S * 0.3, -S * 0.24); ctx.quadraticCurveTo(0, S * 0.2, -S * 0.24, S * 0.4); ctx.stroke();
+
+  // Brazos cruzados con brazaletes granates y guantes a rayas
+  const drawGlove = (gx, gy) => {
+    ctx.fillStyle = glove; ctx.beginPath(); ctx.arc(gx, gy, S * 0.12, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = gloveL; ctx.lineWidth = S * 0.015;
+    for (let i = -2; i <= 2; i++) { ctx.beginPath(); ctx.arc(gx, gy, S * 0.12, 0.3, Math.PI - 0.3); ctx.stroke(); ctx.beginPath(); ctx.moveTo(gx - S * 0.1, gy + i * S * 0.03); ctx.lineTo(gx + S * 0.1, gy + i * S * 0.03); ctx.stroke(); }
+    ctx.fillStyle = gloveL; ctx.beginPath(); ctx.arc(gx - S * 0.03, gy - S * 0.02, S * 0.02, 0, Math.PI * 2); ctx.arc(gx + S * 0.04, gy + S * 0.02, S * 0.02, 0, Math.PI * 2); ctx.fill();
+  };
+  // antebrazo inferior (izq sobre der)
+  ctx.strokeStyle = coat; ctx.lineWidth = S * 0.2; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(S * 0.42, S * 0.24); ctx.lineTo(-S * 0.12, S * 0.42); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-S * 0.42, S * 0.2); ctx.lineTo(S * 0.14, S * 0.46); ctx.stroke();
+  ctx.lineCap = 'butt';
+  // brazaletes granates con emblema
+  for (const s of [-1, 1]) { ctx.save(); ctx.translate(s * S * 0.42, S * 0.22); ctx.fillStyle = maroon; ctx.fillRect(-S * 0.1, -S * 0.09, S * 0.2, S * 0.18); ctx.fillStyle = gold; ctx.fillRect(-S * 0.04, -S * 0.05, S * 0.08, S * 0.1); ctx.restore(); }
+  drawGlove(S * 0.14, S * 0.46); drawGlove(-S * 0.12, S * 0.44);
+
+  // Cabeza + barba
+  ctx.fillStyle = skin; ctx.beginPath(); ctx.ellipse(0, hy, S * 0.18, S * 0.2, 0, 0, Math.PI * 2); ctx.fill();
+  // barba negra grande
+  ctx.fillStyle = beard;
+  ctx.beginPath(); ctx.moveTo(-S * 0.19, hy - S * 0.02); ctx.quadraticCurveTo(-S * 0.22, hy + S * 0.28, 0, hy + S * 0.34); ctx.quadraticCurveTo(S * 0.22, hy + S * 0.28, S * 0.19, hy - S * 0.02); ctx.quadraticCurveTo(0, hy + S * 0.12, -S * 0.19, hy - S * 0.02); ctx.closePath(); ctx.fill();
+  // orejas puntiagudas
+  ctx.fillStyle = skin;
+  ctx.beginPath(); ctx.moveTo(-S * 0.16, hy); ctx.lineTo(-S * 0.3, hy - S * 0.04); ctx.lineTo(-S * 0.15, hy + S * 0.06); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(S * 0.16, hy); ctx.lineTo(S * 0.3, hy - S * 0.04); ctx.lineTo(S * 0.15, hy + S * 0.06); ctx.closePath(); ctx.fill();
+  // ojos saltones
+  ctx.fillStyle = '#f0f0f0'; ctx.beginPath(); ctx.arc(-S * 0.07, hy - S * 0.04, S * 0.045, 0, Math.PI * 2); ctx.arc(S * 0.07, hy - S * 0.04, S * 0.045, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#1a1a1a'; ctx.beginPath(); ctx.arc(-S * 0.07, hy - S * 0.04, S * 0.018, 0, Math.PI * 2); ctx.arc(S * 0.07, hy - S * 0.04, S * 0.018, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#a04040'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-S * 0.07, hy + S * 0.02); ctx.lineTo(-S * 0.07, hy + S * 0.1); ctx.moveTo(S * 0.07, hy + S * 0.02); ctx.lineTo(S * 0.07, hy + S * 0.1); ctx.stroke();
+  // boca
+  ctx.fillStyle = '#5a2020'; ctx.beginPath(); ctx.ellipse(0, hy + S * 0.08, S * 0.05, S * 0.03, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Gorra con cuernos
+  ctx.fillStyle = '#101018'; ctx.beginPath(); ctx.ellipse(0, hy - S * 0.16, S * 0.2, S * 0.09, 0, Math.PI, 0); ctx.fill();
+  ctx.fillStyle = gold; ctx.beginPath(); ctx.arc(0, hy - S * 0.2, S * 0.025, 0, Math.PI * 2); ctx.fill();
+  for (const s of [-1, 1]) {
+    ctx.fillStyle = '#101018';
+    ctx.beginPath(); ctx.moveTo(s * S * 0.14, hy - S * 0.22); ctx.quadraticCurveTo(s * S * 0.4, hy - S * 0.5, s * S * 0.32, hy - S * 0.62); ctx.quadraticCurveTo(s * S * 0.22, hy - S * 0.42, s * S * 0.06, hy - S * 0.24); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#f0f0f0'; ctx.lineWidth = S * 0.02;
+    ctx.beginPath(); ctx.moveTo(s * S * 0.2, hy - S * 0.32); ctx.lineTo(s * S * 0.28, hy - S * 0.3); ctx.moveTo(s * S * 0.25, hy - S * 0.42); ctx.lineTo(s * S * 0.32, hy - S * 0.4); ctx.stroke();
+  }
+}
+
 const BOSS_ART = {
   Buggy: drawBossBuggy,
   Crocodile: drawBossCrocodile,
@@ -3327,6 +3433,7 @@ const BOSS_ART = {
   'Rob Lucci': drawBossLucci,
   'Gecko Moria': drawBossMoria,
   'Bartholomew Kuma': drawBossKuma,
+  Magellan: drawBossMagellan,
 };
 
 function drawBossUI() {
