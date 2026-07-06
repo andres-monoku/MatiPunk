@@ -3053,10 +3053,97 @@ function drawBossEnel(b, S) {
   ctx.beginPath(); ctx.arc(-S * 0.06, hy + S * 0.62, S * 0.035, 0, Math.PI * 2); ctx.arc(S * 0.06, hy + S * 0.62, S * 0.035, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
 }
 
+function drawBossLucci(b, S) {
+  const white = '#f1f1ef', whiteSh = '#d3d5da', blue = '#bcd0ec', blueSh = '#95aed0';
+  const skin = '#c99a6a', skinSh = '#a87c4e', hair = '#171418';
+  const btn = '#9aa0a8', rose = '#8a3aaa', roseHi = '#b366d0', shoe = '#20232a';
+  const hy = -S * 0.72;
+
+  // Capa blanca (detras)
+  ctx.beginPath();
+  ctx.moveTo(-S * 0.5, -S * 0.34);
+  ctx.quadraticCurveTo(-S * 0.82, S * 0.5, -S * 0.72, S * 1.5);
+  ctx.lineTo(-S * 0.28, S * 1.42); ctx.lineTo(S * 0.28, S * 1.42);
+  ctx.quadraticCurveTo(S * 0.82, S * 0.5, S * 0.72, S * 1.5);
+  ctx.quadraticCurveTo(S * 0.82, S * 0.5, S * 0.5, -S * 0.34);
+  ctx.closePath(); ctx.fillStyle = white; ctx.fill(); ctx.strokeStyle = whiteSh; ctx.lineWidth = 1.5; ctx.stroke();
+
+  // Piernas azul palido + zapatos
+  ctx.fillStyle = blue;
+  ctx.beginPath(); ctx.moveTo(-S * 0.24, S * 0.4); ctx.lineTo(-S * 0.28, S * 1.42); ctx.lineTo(-S * 0.03, S * 1.42); ctx.lineTo(-S * 0.02, S * 0.4); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(S * 0.24, S * 0.4); ctx.lineTo(S * 0.28, S * 1.42); ctx.lineTo(S * 0.03, S * 1.42); ctx.lineTo(S * 0.02, S * 0.4); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = blueSh; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, S * 0.45); ctx.lineTo(0, S * 1.4); ctx.stroke();
+  ctx.fillStyle = shoe;
+  ctx.beginPath(); ctx.ellipse(-S * 0.16, S * 1.45, S * 0.14, S * 0.07, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(S * 0.16, S * 1.45, S * 0.14, S * 0.07, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Brazos (mangas blancas + manos)
+  for (const s of [-1, 1]) {
+    ctx.strokeStyle = white; ctx.lineWidth = S * 0.17; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(s * S * 0.36, -S * 0.28); ctx.lineTo(s * S * 0.44, S * 0.55); ctx.stroke();
+    ctx.lineCap = 'butt';
+    ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(s * S * 0.44, S * 0.62, S * 0.08, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // Chaqueta cruzada blanca (larga)
+  ctx.fillStyle = white;
+  ctx.beginPath();
+  ctx.moveTo(-S * 0.32, -S * 0.32); ctx.lineTo(S * 0.32, -S * 0.32);
+  ctx.quadraticCurveTo(S * 0.36, S * 0.3, S * 0.28, S * 0.72); ctx.lineTo(-S * 0.28, S * 0.72);
+  ctx.quadraticCurveTo(-S * 0.36, S * 0.3, -S * 0.32, -S * 0.32); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = whiteSh; ctx.lineWidth = 1.2; ctx.stroke();
+  // solapas en V
+  ctx.fillStyle = whiteSh;
+  ctx.beginPath(); ctx.moveTo(-S * 0.3, -S * 0.32); ctx.lineTo(-S * 0.02, -S * 0.05); ctx.lineTo(-S * 0.18, -S * 0.34); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(S * 0.3, -S * 0.32); ctx.lineTo(S * 0.02, -S * 0.05); ctx.lineTo(S * 0.18, -S * 0.34); ctx.closePath(); ctx.fill();
+  // pecho azul visible (V)
+  ctx.fillStyle = blue; ctx.beginPath(); ctx.moveTo(-S * 0.06, -S * 0.3); ctx.lineTo(S * 0.06, -S * 0.3); ctx.lineTo(0, -S * 0.02); ctx.closePath(); ctx.fill();
+  // botones grises (doble hilera)
+  ctx.fillStyle = btn;
+  for (let i = 0; i < 3; i++) { const yy = -S * 0.02 + i * S * 0.2; ctx.beginPath(); ctx.arc(-S * 0.12, yy, S * 0.03, 0, Math.PI * 2); ctx.arc(S * 0.12, yy, S * 0.03, 0, Math.PI * 2); ctx.fill(); }
+  // rosa morada en la solapa
+  ctx.fillStyle = rose; for (let k = 0; k < 6; k++) { const a = k * 1.05; ctx.beginPath(); ctx.ellipse(-S * 0.18 + Math.cos(a) * S * 0.03, -S * 0.14 + Math.sin(a) * S * 0.03, S * 0.035, S * 0.022, a, 0, Math.PI * 2); ctx.fill(); }
+  ctx.fillStyle = roseHi; ctx.beginPath(); ctx.arc(-S * 0.18, -S * 0.14, S * 0.02, 0, Math.PI * 2); ctx.fill();
+
+  // Cuello + cabeza
+  ctx.fillStyle = skin; ctx.fillRect(-S * 0.08, -S * 0.4, S * 0.16, S * 0.12);
+  ctx.beginPath(); ctx.ellipse(0, hy, S * 0.18, S * 0.22, 0, 0, Math.PI * 2); ctx.fillStyle = skin; ctx.fill();
+  ctx.strokeStyle = skinSh; ctx.lineWidth = 1; ctx.stroke();
+  // cabello negro largo
+  ctx.fillStyle = hair;
+  ctx.beginPath(); ctx.moveTo(-S * 0.2, hy - S * 0.08); ctx.quadraticCurveTo(-S * 0.28, hy + S * 0.5, -S * 0.16, hy + S * 0.6); ctx.lineTo(-S * 0.08, hy + S * 0.1); ctx.quadraticCurveTo(-S * 0.2, hy - S * 0.02, -S * 0.2, hy - S * 0.08); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(S * 0.2, hy - S * 0.08); ctx.quadraticCurveTo(S * 0.3, hy + S * 0.5, S * 0.16, hy + S * 0.62); ctx.lineTo(S * 0.08, hy + S * 0.1); ctx.quadraticCurveTo(S * 0.2, hy - S * 0.02, S * 0.2, hy - S * 0.08); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-S * 0.19, hy - S * 0.14); ctx.quadraticCurveTo(0, hy - S * 0.28, S * 0.19, hy - S * 0.14); ctx.quadraticCurveTo(0, hy - S * 0.08, -S * 0.19, hy - S * 0.14); ctx.closePath(); ctx.fill();
+  // ojos serios
+  ctx.fillStyle = '#2a1a10'; ctx.beginPath(); ctx.arc(-S * 0.07, hy - S * 0.01, S * 0.022, 0, Math.PI * 2); ctx.arc(S * 0.07, hy - S * 0.01, S * 0.022, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = hair; ctx.lineWidth = S * 0.018; ctx.beginPath(); ctx.moveTo(-S * 0.11, hy - S * 0.06); ctx.lineTo(-S * 0.03, hy - S * 0.04); ctx.moveTo(S * 0.11, hy - S * 0.06); ctx.lineTo(S * 0.03, hy - S * 0.04); ctx.stroke();
+  // perilla
+  ctx.fillStyle = hair; ctx.beginPath(); ctx.moveTo(-S * 0.04, hy + S * 0.12); ctx.lineTo(0, hy + S * 0.22); ctx.lineTo(S * 0.04, hy + S * 0.12); ctx.closePath(); ctx.fill();
+
+  // Sombrero de copa blanco con banda negra
+  ctx.fillStyle = white; ctx.beginPath(); ctx.ellipse(0, hy - S * 0.2, S * 0.34, S * 0.07, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = white; ctx.fillRect(-S * 0.16, hy - S * 0.5, S * 0.32, S * 0.32);
+  ctx.fillStyle = whiteSh; ctx.fillRect(-S * 0.16, hy - S * 0.5, S * 0.32, S * 0.03);
+  ctx.fillStyle = '#1a1a1a'; ctx.fillRect(-S * 0.16, hy - S * 0.26, S * 0.32, S * 0.05);
+
+  // Paloma Hattori en el hombro
+  const px = S * 0.4, py = -S * 0.42;
+  ctx.fillStyle = '#f4f4f2';
+  ctx.beginPath(); ctx.ellipse(px, py, S * 0.09, S * 0.11, 0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(px + S * 0.05, py - S * 0.09, S * 0.055, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#e8a030'; ctx.beginPath(); ctx.moveTo(px + S * 0.1, py - S * 0.09); ctx.lineTo(px + S * 0.15, py - S * 0.08); ctx.lineTo(px + S * 0.1, py - S * 0.06); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#2a2a5a'; ctx.beginPath(); ctx.moveTo(px + S * 0.02, py + S * 0.02); ctx.lineTo(px + S * 0.06, py + S * 0.02); ctx.lineTo(px + S * 0.04, py + S * 0.1); ctx.closePath(); ctx.fill();
+  // sombrerito
+  ctx.fillStyle = '#f4f4f2'; ctx.fillRect(px + S * 0.01, py - S * 0.2, S * 0.08, S * 0.06);
+  ctx.fillStyle = '#f4f4f2'; ctx.beginPath(); ctx.ellipse(px + S * 0.05, py - S * 0.14, S * 0.07, S * 0.02, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#2a2a2a'; ctx.beginPath(); ctx.arc(px + S * 0.03, py - S * 0.1, S * 0.012, 0, Math.PI * 2); ctx.fill();
+}
+
 const BOSS_ART = {
   Buggy: drawBossBuggy,
   Crocodile: drawBossCrocodile,
   Enel: drawBossEnel,
+  'Rob Lucci': drawBossLucci,
 };
 
 function drawBossUI() {
