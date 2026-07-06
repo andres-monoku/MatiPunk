@@ -2701,12 +2701,19 @@ function drawBoss() {
   const b = boss, S = b.size, col = b.color;
   ctx.save(); ctx.translate(b.x, b.y);
   const throb = 1 + Math.sin(b.phase * 3) * 0.04; ctx.scale(throb, throb);
-  const bodyTop = -S * 0.12, headY = -S * 0.78;
-
   // aura
   const aura = ctx.createRadialGradient(0, 0, S * 0.4, 0, 0, S * 2);
   aura.addColorStop(0, col + '44'); aura.addColorStop(1, 'transparent');
   ctx.fillStyle = aura; ctx.beginPath(); ctx.arc(0, S * 0.4, S * 2, 0, Math.PI * 2); ctx.fill();
+  const art = BOSS_ART[b.name];
+  if (art) art(b, S); else drawBossGeneric(b, S);
+  ctx.restore();
+}
+
+// Jefes sin arte propio usan este villano humanoide generico
+function drawBossGeneric(b, S) {
+  const col = b.color;
+  const bodyTop = -S * 0.12, headY = -S * 0.78;
 
   // capa (detras) que ondea
   ctx.beginPath();
@@ -2761,8 +2768,96 @@ function drawBoss() {
   ctx.strokeStyle = col; ctx.lineWidth = 2.5; ctx.stroke();
   ctx.font = `${Math.round(S * 0.72)}px Arial`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText(b.emoji, 0, headY + S * 0.03);
-  ctx.restore();
 }
+
+// ===== ARTE PROPIO POR JEFE =====
+function drawBossBuggy(b, S) {
+  const white = '#ece7dc', whiteSh = '#cfc8b6', navy = '#2a2f45';
+  const red = '#d63636', nose = '#e23b2b', faceW = '#f3ecdc';
+  const green = '#93b25a', greenD = '#6f8c40', sash = '#2f8f8f';
+  const pants = '#a9c890', shoe = '#7a3a1e', orange = '#e08a3a', brace = '#8aa04a';
+  const purple = '#6f5586', blue = '#3a63a0';
+  const hy = -S * 0.75;
+
+  // Capa navy con borde blanco
+  ctx.beginPath();
+  ctx.moveTo(-S * 0.55, -S * 0.45);
+  ctx.quadraticCurveTo(-S * 1.25, S * 0.5, -S * 0.9, S * 1.5);
+  ctx.lineTo(-S * 0.25, S * 1.25); ctx.lineTo(S * 0.25, S * 1.25);
+  ctx.quadraticCurveTo(S * 1.25, S * 0.5, S * 0.9, S * 1.5);
+  ctx.quadraticCurveTo(S * 1.25, S * 0.5, S * 0.55, -S * 0.45);
+  ctx.closePath(); ctx.fillStyle = navy; ctx.fill();
+  ctx.lineWidth = S * 0.12; ctx.strokeStyle = white; ctx.lineJoin = 'round';
+  ctx.beginPath(); ctx.moveTo(-S * 0.5, -S * 0.45); ctx.quadraticCurveTo(-S * 1.1, S * 0.5, -S * 0.82, S * 1.45); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(S * 0.5, -S * 0.45); ctx.quadraticCurveTo(S * 1.1, S * 0.5, S * 0.82, S * 1.45); ctx.stroke();
+
+  // Piernas + medias a rayas + zapatos
+  ctx.fillStyle = pants;
+  ctx.fillRect(-S * 0.28, S * 0.5, S * 0.24, S * 0.72);
+  ctx.fillRect(S * 0.04, S * 0.5, S * 0.24, S * 0.72);
+  for (const lx of [-S * 0.28, S * 0.04]) for (let i = 0; i < 3; i++) { ctx.fillStyle = i % 2 ? red : white; ctx.fillRect(lx, S * 1.2 + i * S * 0.06, S * 0.24, S * 0.06); }
+  ctx.fillStyle = shoe;
+  ctx.beginPath(); ctx.moveTo(-S * 0.28, S * 1.42); ctx.lineTo(-S * 0.55, S * 1.55); ctx.lineTo(-S * 0.02, S * 1.55); ctx.lineTo(-S * 0.02, S * 1.42); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(S * 0.28, S * 1.42); ctx.lineTo(S * 0.55, S * 1.55); ctx.lineTo(S * 0.02, S * 1.55); ctx.lineTo(S * 0.02, S * 1.42); ctx.closePath(); ctx.fill();
+
+  // Brazos extendidos (manga blanca + antebrazo naranja + guante)
+  for (const s of [-1, 1]) {
+    ctx.strokeStyle = white; ctx.lineWidth = S * 0.2; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(s * S * 0.4, -S * 0.32); ctx.lineTo(s * S * 0.75, -S * 0.6); ctx.stroke();
+    ctx.strokeStyle = orange; ctx.lineWidth = S * 0.16;
+    ctx.beginPath(); ctx.moveTo(s * S * 0.75, -S * 0.6); ctx.lineTo(s * S * 1.05, -S * 0.78); ctx.stroke();
+    ctx.strokeStyle = brace; ctx.lineWidth = S * 0.2;
+    ctx.beginPath(); ctx.moveTo(s * S * 0.98, -S * 0.74); ctx.lineTo(s * S * 1.08, -S * 0.79); ctx.stroke();
+    ctx.lineCap = 'butt';
+    ctx.fillStyle = white; ctx.beginPath(); ctx.arc(s * S * 1.2, -S * 0.85, S * 0.16, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = white; ctx.lineWidth = S * 0.05; ctx.lineCap = 'round';
+    for (let f = -2; f <= 2; f++) { const a = -Math.PI / 2 + s * 0.5 + f * 0.28; ctx.beginPath(); ctx.moveTo(s * S * 1.2, -S * 0.85); ctx.lineTo(s * S * 1.2 + Math.cos(a) * S * 0.22, -S * 0.85 + Math.sin(a) * S * 0.22); ctx.stroke(); }
+    ctx.lineCap = 'butt';
+  }
+
+  // Torso: camisa a rayas rojas/blancas
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(-S * 0.3, -S * 0.42); ctx.lineTo(S * 0.3, -S * 0.42);
+  ctx.quadraticCurveTo(S * 0.42, S * 0.1, S * 0.3, S * 0.5); ctx.lineTo(-S * 0.3, S * 0.5);
+  ctx.quadraticCurveTo(-S * 0.42, S * 0.1, -S * 0.3, -S * 0.42); ctx.closePath(); ctx.clip();
+  for (let i = 0; i < 9; i++) { ctx.fillStyle = i % 2 ? red : white; ctx.fillRect(-S * 0.5, -S * 0.45 + i * S * 0.11, S, S * 0.11); }
+  ctx.restore();
+
+  // Faja teal
+  ctx.fillStyle = sash; ctx.fillRect(-S * 0.32, S * 0.4, S * 0.64, S * 0.14);
+  ctx.beginPath(); ctx.moveTo(S * 0.28, S * 0.5); ctx.lineTo(S * 0.45, S * 0.85); ctx.lineTo(S * 0.3, S * 0.85); ctx.closePath(); ctx.fill();
+
+  // Panuelo morado
+  ctx.fillStyle = purple; ctx.beginPath(); ctx.moveTo(-S * 0.12, -S * 0.4); ctx.lineTo(S * 0.12, -S * 0.4); ctx.lineTo(0, -S * 0.05); ctx.closePath(); ctx.fill();
+
+  // Gorguera verde
+  ctx.fillStyle = green;
+  for (const s of [-1, 1]) { ctx.beginPath(); ctx.ellipse(s * S * 0.2, -S * 0.48, S * 0.22, S * 0.12, s * 0.3, 0, Math.PI * 2); ctx.fill(); }
+  ctx.fillStyle = greenD;
+  for (let i = -3; i <= 3; i++) { ctx.beginPath(); ctx.arc(i * S * 0.09, -S * 0.46, S * 0.05, 0, Math.PI * 2); ctx.fill(); }
+
+  // Cabeza payaso
+  ctx.beginPath(); ctx.arc(0, hy, S * 0.32, 0, Math.PI * 2); ctx.fillStyle = faceW; ctx.fill();
+  ctx.strokeStyle = whiteSh; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(-S * 0.11, hy - S * 0.05, S * 0.045, 0, Math.PI * 2); ctx.arc(S * 0.11, hy - S * 0.05, S * 0.045, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = blue; ctx.lineWidth = S * 0.03;
+  ctx.beginPath(); ctx.moveTo(-S * 0.18, hy - S * 0.12); ctx.lineTo(-S * 0.05, hy - S * 0.1); ctx.moveTo(S * 0.18, hy - S * 0.12); ctx.lineTo(S * 0.05, hy - S * 0.1); ctx.stroke();
+  ctx.fillStyle = red; ctx.beginPath(); ctx.arc(0, hy + S * 0.08, S * 0.16, 0.1, Math.PI - 0.1); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(0, hy + S * 0.09, S * 0.12, S * 0.04, 0, 0, Math.PI); ctx.fill();
+  ctx.beginPath(); ctx.arc(0, hy + S * 0.02, S * 0.075, 0, Math.PI * 2); ctx.fillStyle = nose; ctx.shadowColor = '#ff6a4a'; ctx.shadowBlur = 8; ctx.fill(); ctx.shadowBlur = 0;
+
+  // Sombrero de capitan
+  ctx.fillStyle = white; ctx.beginPath(); ctx.ellipse(0, hy - S * 0.28, S * 0.5, S * 0.16, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = blue; ctx.beginPath(); ctx.arc(-S * 0.42, hy - S * 0.28, S * 0.1, 0, Math.PI * 2); ctx.arc(S * 0.42, hy - S * 0.28, S * 0.1, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = navy; ctx.beginPath(); ctx.moveTo(-S * 0.3, hy - S * 0.3); ctx.quadraticCurveTo(0, hy - S * 0.75, S * 0.3, hy - S * 0.3); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = white; ctx.fillRect(-S * 0.32, hy - S * 0.34, S * 0.64, S * 0.08);
+  ctx.fillStyle = '#fff'; ctx.font = `${S * 0.18}px Arial`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('☠', 0, hy - S * 0.5);
+}
+
+const BOSS_ART = {
+  Buggy: drawBossBuggy,
+};
 
 function drawBossUI() {
   const b = boss;
