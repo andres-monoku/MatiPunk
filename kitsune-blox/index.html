@@ -3327,19 +3327,25 @@ function drawBossMagellan(b, S) {
   const belt = '#6a4a28', btn = '#8a8a92', pants = '#2a2e34';
   const hy = -S * 0.8;
 
-  // Alas de murcielago (detras)
+  // Alas de murcielago grandes (detras)
   for (const s of [-1, 1]) {
     ctx.beginPath();
-    ctx.moveTo(s * S * 0.35, -S * 0.4);
-    ctx.lineTo(s * S * 1.05, -S * 0.5);
-    ctx.lineTo(s * S * 0.85, -S * 0.1);
-    ctx.lineTo(s * S * 1.0, S * 0.1);
-    ctx.lineTo(s * S * 0.7, S * 0.15);
-    ctx.lineTo(s * S * 0.85, S * 0.45);
-    ctx.lineTo(s * S * 0.5, S * 0.3);
-    ctx.lineTo(s * S * 0.4, -S * 0.1);
+    ctx.moveTo(s * S * 0.28, -S * 0.5);
+    ctx.lineTo(s * S * 1.5, -S * 0.8);
+    ctx.lineTo(s * S * 1.18, -S * 0.2);
+    ctx.lineTo(s * S * 1.45, S * 0.25);
+    ctx.lineTo(s * S * 1.0, S * 0.2);
+    ctx.lineTo(s * S * 1.2, S * 0.78);
+    ctx.lineTo(s * S * 0.72, S * 0.4);
+    ctx.lineTo(s * S * 0.55, S * 0.75);
+    ctx.lineTo(s * S * 0.34, S * 0.0);
     ctx.closePath();
     ctx.fillStyle = wing; ctx.fill(); ctx.strokeStyle = wingE; ctx.lineWidth = 1.5; ctx.stroke();
+    // nervaduras de la membrana
+    ctx.strokeStyle = wingE; ctx.lineWidth = S * 0.02;
+    ctx.beginPath(); ctx.moveTo(s * S * 0.32, -S * 0.35); ctx.lineTo(s * S * 1.18, -S * 0.2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(s * S * 0.32, -S * 0.35); ctx.lineTo(s * S * 1.0, S * 0.2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(s * S * 0.32, -S * 0.35); ctx.lineTo(s * S * 0.72, S * 0.4); ctx.stroke();
   }
 
   // Piernas / botas
@@ -3350,23 +3356,23 @@ function drawBossMagellan(b, S) {
   ctx.beginPath(); ctx.ellipse(-S * 0.13, S * 1.44, S * 0.13, S * 0.06, 0, 0, Math.PI * 2); ctx.fill();
   ctx.beginPath(); ctx.ellipse(S * 0.13, S * 1.44, S * 0.13, S * 0.06, 0, 0, Math.PI * 2); ctx.fill();
 
-  // Abrigo negro voluminoso
+  // Abrigo negro esbelto
   ctx.fillStyle = coat;
   ctx.beginPath();
-  ctx.moveTo(-S * 0.4, -S * 0.44);
-  ctx.quadraticCurveTo(-S * 0.95, -S * 0.2, -S * 0.78, S * 0.6);
-  ctx.quadraticCurveTo(-S * 0.72, S * 1.1, -S * 0.4, S * 1.2);
-  ctx.lineTo(S * 0.4, S * 1.2);
-  ctx.quadraticCurveTo(S * 0.72, S * 1.1, S * 0.78, S * 0.6);
-  ctx.quadraticCurveTo(S * 0.95, -S * 0.2, S * 0.4, -S * 0.44);
+  ctx.moveTo(-S * 0.32, -S * 0.44);
+  ctx.quadraticCurveTo(-S * 0.56, -S * 0.15, -S * 0.48, S * 0.6);
+  ctx.quadraticCurveTo(-S * 0.44, S * 1.1, -S * 0.26, S * 1.2);
+  ctx.lineTo(S * 0.26, S * 1.2);
+  ctx.quadraticCurveTo(S * 0.44, S * 1.1, S * 0.48, S * 0.6);
+  ctx.quadraticCurveTo(S * 0.56, -S * 0.15, S * 0.32, -S * 0.44);
   ctx.closePath(); ctx.fill(); ctx.strokeStyle = coatE; ctx.lineWidth = 1.5; ctx.stroke();
   // botones grises doble hilera
   ctx.fillStyle = btn;
   for (let i = 0; i < 5; i++) { const yy = -S * 0.1 + i * S * 0.26; ctx.beginPath(); ctx.arc(-S * 0.18, yy, S * 0.028, 0, Math.PI * 2); ctx.arc(S * 0.18, yy, S * 0.028, 0, Math.PI * 2); ctx.fill(); }
 
   // Cinturon marron + hebilla
-  ctx.fillStyle = belt; ctx.fillRect(-S * 0.5, S * 0.6, S, S * 0.11);
-  ctx.strokeStyle = gold; ctx.lineWidth = S * 0.015; ctx.strokeRect(-S * 0.5, S * 0.6, S, S * 0.11);
+  ctx.fillStyle = belt; ctx.fillRect(-S * 0.44, S * 0.6, S * 0.88, S * 0.11);
+  ctx.strokeStyle = gold; ctx.lineWidth = S * 0.015; ctx.strokeRect(-S * 0.44, S * 0.6, S * 0.88, S * 0.11);
   ctx.fillStyle = gold; ctx.fillRect(-S * 0.07, S * 0.58, S * 0.14, S * 0.15);
   ctx.fillStyle = belt; ctx.fillRect(-S * 0.04, S * 0.61, S * 0.08, S * 0.09);
 
