@@ -237,6 +237,67 @@ const ISLAND_THEMES = [
 ];
 function islandTheme(n) { return ISLAND_THEMES[(n - 1) % ISLAND_THEMES.length]; }
 
+// ===== JEFES (inspirados en One Piece) al final de cada isla, cada uno mas fuerte =====
+let boss = null;
+let bossShots = [];
+const BOSSES = [
+  { name: 'Buggy', emoji: '🤡', color: '#ff5a5a' },
+  { name: 'Crocodile', emoji: '🐊', color: '#d4a24a' },
+  { name: 'Enel', emoji: '⚡', color: '#ffe23a' },
+  { name: 'Rob Lucci', emoji: '🐆', color: '#8a6a3a' },
+  { name: 'Gecko Moria', emoji: '🦇', color: '#8a4ab0' },
+  { name: 'Bartholomew Kuma', emoji: '🐻', color: '#c04a4a' },
+  { name: 'Magellan', emoji: '☠️', color: '#7ab04a' },
+  { name: 'Caesar Clown', emoji: '🧪', color: '#4ab08a' },
+  { name: 'Vergo', emoji: '🎋', color: '#4a6ab0' },
+  { name: 'Monet', emoji: '❄️', color: '#8ad0ff' },
+  { name: 'Pica', emoji: '🗿', color: '#a0a0a0' },
+  { name: 'Trebol', emoji: '🟢', color: '#6ab04a' },
+  { name: 'Diamante', emoji: '💎', color: '#ff8a4a' },
+  { name: 'Doflamingo', emoji: '🕸️', color: '#ff5aa0' },
+  { name: 'Sanjuan Wolf', emoji: '🌊', color: '#4a8ab0' },
+  { name: 'Katakuri', emoji: '🍡', color: '#b04a6a' },
+  { name: 'Cracker', emoji: '🍪', color: '#c0904a' },
+  { name: 'Perospero', emoji: '🍭', color: '#ff8ad0' },
+  { name: 'Smoothie', emoji: '🍹', color: '#b04a8a' },
+  { name: 'Oven', emoji: '🔥', color: '#ff6a4a' },
+  { name: 'Daifuku', emoji: '🧞', color: '#6a5ab0' },
+  { name: 'Big Mom', emoji: '👵', color: '#ff4a8a' },
+  { name: 'Page One', emoji: '🦖', color: '#6ab0a0' },
+  { name: 'Ulti', emoji: '🦏', color: '#ff5a8a' },
+  { name: "Who's Who", emoji: '🐅', color: '#d0a04a' },
+  { name: 'Sasaki', emoji: '🐢', color: '#4ab06a' },
+  { name: 'Black Maria', emoji: '🕷️', color: '#b04a9a' },
+  { name: 'X Drake', emoji: '🦕', color: '#4a7ab0' },
+  { name: 'King', emoji: '🔥', color: '#ff7a2a' },
+  { name: 'Queen', emoji: '🦠', color: '#ffd04a' },
+  { name: 'Jack', emoji: '🦣', color: '#6a8a4a' },
+  { name: 'Kaido', emoji: '🐉', color: '#4ab0d0' },
+  { name: 'Orochi', emoji: '🐍', color: '#b0a04a' },
+  { name: 'Blackbeard', emoji: '🌑', color: '#4a3a5a' },
+  { name: 'Shiryu', emoji: '🌫️', color: '#8a8a9a' },
+  { name: 'Catarina Devon', emoji: '🐺', color: '#b06a8a' },
+  { name: 'Van Augur', emoji: '🎯', color: '#6a9ab0' },
+  { name: 'Avalo Pizarro', emoji: '🏝️', color: '#8ab06a' },
+  { name: 'Akainu', emoji: '🌋', color: '#ff3a1a' },
+  { name: 'Kizaru', emoji: '✨', color: '#fff04a' },
+  { name: 'Aokiji', emoji: '🧊', color: '#6ad0ff' },
+  { name: 'Fujitora', emoji: '🌌', color: '#9a6ad0' },
+  { name: 'Ryokugyu', emoji: '🌿', color: '#6ab04a' },
+  { name: 'Sengoku', emoji: '🔔', color: '#d0b04a' },
+  { name: 'Garp', emoji: '👊', color: '#4a6a9a' },
+  { name: 'Mihawk', emoji: '⚔️', color: '#b04a4a' },
+  { name: 'Boa Hancock', emoji: '💗', color: '#ff6ab0' },
+  { name: 'Jinbe', emoji: '🌊', color: '#4a8ad0' },
+  { name: 'Rayleigh', emoji: '🦑', color: '#9a9ab0' },
+  { name: 'Shanks', emoji: '🗡️', color: '#d04a4a' },
+  { name: 'Whitebeard', emoji: '🌊', color: '#4ad0d0' },
+  { name: 'Gol D. Roger', emoji: '👑', color: '#ffc34a' },
+  { name: 'Rocks D. Xebec', emoji: '🌪️', color: '#7a4a9a' },
+  { name: 'Imu', emoji: '👁️', color: '#b02a5a' },
+  { name: 'Gorosei', emoji: '🕴️', color: '#8a8a6a' },
+];
+
 // Create stars
 for (let i = 0; i < 200; i++) {
   stars.push({
@@ -410,13 +471,14 @@ function isBeast(fruit) {
 
 // Sube 1 nivel por cada 8 enemigos derrotados; cada 10 niveles viaja a otra isla
 function gainLevelIfNeeded() {
+  if (boss || travel.active) return; // no se sube de nivel durante jefe o viaje
   if (kills < level * 8) return;
   level++;
   const nt = Math.min(9, 3 + Math.floor(level / 2));
   players.forEach(pp => pp.numTails = nt);
   enemySpeed += 0.15;
   if (level % 10 === 0) {
-    startIslandTravel();
+    spawnBoss(); // al final de cada isla aparece el jefe
   } else {
     const lvl = document.getElementById('level-up');
     lvl.textContent = `🌟 NIVEL ${level}! 🌟 ${nt} COLAS!`;
@@ -609,6 +671,13 @@ function runSuper(cf, s) {
     enemies.forEach(e => { e.x = cx + (Math.random()-0.5)*40; e.y = cy + (Math.random()-0.5)*40; });
     setTimeout(() => { enemies.forEach(e => { createExplosion(e.x, e.y, 270, 20); score += 50*combo; }); enemies = []; screenShake = 25; }, 300);
   }
+  // Los super que no lanzan proyectiles igual danan al jefe
+  if (boss && (s.k || s.sh || s.fz || s.fx === 'blackhole')) {
+    boss.hp -= 18 + island * 2;
+    createExplosion(boss.x, boss.y, s.h, 20);
+    if (boss.hp <= 0) defeatBoss();
+  }
+
   // --- Particulas + texto ---
   superParticles(s.h - 25, s.h + 25, 90);
   const lvl = document.getElementById('level-up');
@@ -2551,6 +2620,122 @@ function startIslandTravel() {
   screenShake = 0;
 }
 
+// ===== JEFES =====
+function spawnBoss() {
+  const cfg = BOSSES[Math.min(island - 1, BOSSES.length - 1)];
+  enemies = []; fireballs = []; bossShots = [];
+  const hp = 80 + island * 55;
+  boss = {
+    name: cfg.name, emoji: cfg.emoji, color: cfg.color,
+    x: canvas.width / 2, y: 140,
+    size: 46 + island * 1.2,
+    hp, maxHp: hp,
+    speed: 0.9 + island * 0.04,
+    dmg: 1 + Math.floor(island / 4),
+    phase: 0, atkTimer: 110, hitCD: 0, spawnCD: 220
+  };
+  const lvl = document.getElementById('level-up');
+  lvl.textContent = `☠️ JEFE: ${cfg.name} ${cfg.emoji}`;
+  lvl.style.color = cfg.color; lvl.style.opacity = 1;
+  setTimeout(() => { lvl.style.opacity = 0; }, 2500);
+  screenShake = 22;
+}
+
+function updateBoss() {
+  const b = boss;
+  b.phase += 0.05;
+  // mover hacia el jugador vivo mas cercano
+  let tx = canvas.width / 2, ty = canvas.height / 2, best = Infinity;
+  players.forEach(p => { if (!p.alive) return; const d = (p.x - b.x) ** 2 + (p.y - b.y) ** 2; if (d < best) { best = d; tx = p.x; ty = p.y; } });
+  const dx = tx - b.x, dy = ty - b.y, d = Math.sqrt(dx * dx + dy * dy) || 1;
+  b.x += dx / d * b.speed; b.y += dy / d * b.speed;
+  b.x = Math.max(60, Math.min(canvas.width - 60, b.x));
+  b.y = Math.max(80, Math.min(canvas.height - 130, b.y));
+  if (b.hitCD > 0) b.hitCD--;
+  // ataque en rafaga
+  b.atkTimer--;
+  if (b.atkTimer <= 0) {
+    b.atkTimer = Math.max(55, 130 - island * 2);
+    const n = 8 + Math.floor(island / 3);
+    for (let i = 0; i < n; i++) { const a = (Math.PI * 2 / n) * i + b.phase; bossShots.push({ x: b.x, y: b.y, vx: Math.cos(a) * 3.4, vy: Math.sin(a) * 3.4, size: 10, life: 170, dmg: b.dmg, color: b.color }); }
+    const aim = Math.atan2(ty - b.y, tx - b.x);
+    bossShots.push({ x: b.x, y: b.y, vx: Math.cos(aim) * 5, vy: Math.sin(aim) * 5, size: 14, life: 170, dmg: b.dmg + 1, color: b.color });
+    screenShake = 8;
+  }
+  // invocar minions
+  b.spawnCD--;
+  if (b.spawnCD <= 0 && enemies.length < 12) { b.spawnCD = 240; const n = 2 + Math.floor(island / 5); for (let i = 0; i < n; i++) spawnEnemy(); }
+}
+
+function defeatBoss() {
+  const b = boss;
+  for (let i = 0; i < 6; i++) ((dl) => setTimeout(() => { if (!gameStarted) return; createExplosion(b.x + (Math.random() - 0.5) * 90, b.y + (Math.random() - 0.5) * 90, 40, 18); screenShake = 20; }, dl))(i * 90);
+  score += 500 * island;
+  players.forEach(p => { if (p.alive) p.health = Math.min(5, p.health + 1); }); // recompensa: +vida
+  boss = null; bossShots = [];
+  updateUI();
+  if (island >= BOSSES.length) victory();
+  else startIslandTravel();
+}
+
+function victory() {
+  gameStarted = false;
+  const ts = document.getElementById('title-screen');
+  ts.style.display = 'flex';
+  ts.querySelector('h2').textContent = `🏆 GANASTE! Venciste a los ${BOSSES.length} jefes - Puntos: ${score} 🏆`;
+  const playBtn = document.getElementById('play-btn');
+  playBtn.textContent = '🔄 JUGAR DE NUEVO 🔄'; playBtn.style.display = '';
+  document.getElementById('instructions').style.display = '';
+  document.getElementById('player-select').style.display = 'none';
+}
+
+function drawBossShots() {
+  bossShots.forEach(s => {
+    ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+    ctx.fillStyle = s.color; ctx.shadowColor = s.color; ctx.shadowBlur = 14; ctx.fill(); ctx.shadowBlur = 0;
+    ctx.beginPath(); ctx.arc(s.x, s.y, s.size * 0.4, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
+  });
+}
+
+function drawBoss() {
+  const b = boss;
+  ctx.save(); ctx.translate(b.x, b.y);
+  const throb = 1 + Math.sin(b.phase * 3) * 0.05; ctx.scale(throb, throb);
+  const aura = ctx.createRadialGradient(0, 0, b.size * 0.3, 0, 0, b.size * 1.8);
+  aura.addColorStop(0, b.color + '55'); aura.addColorStop(1, 'transparent');
+  ctx.fillStyle = aura; ctx.beginPath(); ctx.arc(0, 0, b.size * 1.8, 0, Math.PI * 2); ctx.fill();
+  // puas
+  ctx.fillStyle = b.color;
+  for (let i = 0; i < 14; i++) { const a = (Math.PI * 2 / 14) * i; ctx.save(); ctx.rotate(a); ctx.beginPath(); ctx.moveTo(-5, b.size * 0.9); ctx.lineTo(0, b.size * 1.28); ctx.lineTo(5, b.size * 0.9); ctx.closePath(); ctx.fill(); ctx.restore(); }
+  // cuerpo
+  ctx.beginPath(); ctx.arc(0, 0, b.size, 0, Math.PI * 2);
+  const g = ctx.createRadialGradient(0, -b.size * 0.3, b.size * 0.2, 0, 0, b.size);
+  g.addColorStop(0, b.color); g.addColorStop(1, '#160616');
+  ctx.fillStyle = g; ctx.shadowColor = b.color; ctx.shadowBlur = 26; ctx.fill(); ctx.shadowBlur = 0;
+  ctx.strokeStyle = b.color; ctx.lineWidth = 3; ctx.stroke();
+  // ojos rojos
+  ctx.fillStyle = '#ff2a2a'; ctx.shadowColor = '#ff2a2a'; ctx.shadowBlur = 14;
+  ctx.beginPath(); ctx.ellipse(-b.size * 0.34, -b.size * 0.12, 6, 8, -0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(b.size * 0.34, -b.size * 0.12, 6, 8, 0.2, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+  // emoji del jefe
+  ctx.font = `${Math.round(b.size)}px Arial`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(b.emoji, 0, b.size * 0.05);
+  ctx.restore();
+}
+
+function drawBossUI() {
+  const b = boss;
+  const w = Math.min(canvas.width * 0.6, 520), x = (canvas.width - w) / 2, y = 92;
+  ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(x - 3, y - 3, w + 6, 20);
+  ctx.fillStyle = '#330008'; ctx.fillRect(x, y, w, 14);
+  ctx.fillStyle = b.color; ctx.fillRect(x, y, w * Math.max(0, b.hp / b.maxHp), 14);
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.strokeRect(x, y, w, 14);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 16px Arial'; ctx.textAlign = 'center';
+  ctx.shadowColor = b.color; ctx.shadowBlur = 10;
+  ctx.fillText(`☠️ ${b.name} (Isla ${island}) ☠️`, canvas.width / 2, y - 8);
+  ctx.shadowBlur = 0;
+}
+
 function updateTravel() {
   travel.timer--;
   if (travel.timer <= 0) {
@@ -2834,6 +3019,48 @@ function checkCollisions() {
       }
     }
   });
+
+  // ===== Colisiones del JEFE =====
+  if (boss) {
+    // Proyectiles del jugador contra el jefe
+    for (let fi = fireballs.length - 1; fi >= 0; fi--) {
+      const fb = fireballs[fi];
+      const dx = fb.x - boss.x, dy = fb.y - boss.y;
+      if (Math.sqrt(dx * dx + dy * dy) < boss.size + fb.size) {
+        boss.hp -= (fb.fruit ? fb.fruit.damage : 1);
+        createExplosion(fb.x, fb.y, 55, 5);
+        if (!fb.piercing) fireballs.splice(fi, 1);
+        if (boss.hp <= 0) { defeatBoss(); return; }
+      }
+    }
+    // El jefe golpea a los jugadores (con cooldown)
+    if (boss && boss.hitCD <= 0) {
+      for (const p of players) {
+        if (!p.alive || p.superActive) continue;
+        const dx = p.x - boss.x, dy = p.y - boss.y;
+        if (Math.sqrt(dx * dx + dy * dy) < boss.size + p.size * 0.6) {
+          p.health -= boss.dmg; boss.hitCD = 45;
+          createExplosion(p.x, p.y, 0, 18); screenShake = 16; combo = 1; comboTimer = 0;
+          if (p.health <= 0) { p.alive = false; createExplosion(p.x, p.y, 0, 40); if (players.every(pl => !pl.alive)) gameOver(); }
+          updateUI(); break;
+        }
+      }
+    }
+    // Los disparos del jefe golpean a los jugadores
+    for (let i = bossShots.length - 1; i >= 0; i--) {
+      const s = bossShots[i];
+      for (const p of players) {
+        if (!p.alive || p.superActive) continue;
+        const dx = p.x - s.x, dy = p.y - s.y;
+        if (Math.sqrt(dx * dx + dy * dy) < p.size * 0.7 + s.size) {
+          p.health -= s.dmg; createExplosion(p.x, p.y, 0, 12); bossShots.splice(i, 1);
+          screenShake = 10; combo = 1; comboTimer = 0;
+          if (p.health <= 0) { p.alive = false; createExplosion(p.x, p.y, 0, 40); if (players.every(pl => !pl.alive)) gameOver(); }
+          updateUI(); break;
+        }
+      }
+    }
+  }
 }
 
 function showCombo() {
@@ -2936,12 +3163,25 @@ function update() {
 
   updatePlayers();
 
-  // Spawn enemies
-  spawnTimer++;
-  const spawnRate = Math.max(25, 150 - level * 12);
-  if (spawnTimer >= spawnRate) {
-    spawnEnemy();
-    spawnTimer = 0;
+  // Spawn enemies (pausado durante la pelea de jefe; sus minions los invoca el jefe)
+  if (!boss) {
+    spawnTimer++;
+    const spawnRate = Math.max(25, 150 - level * 12);
+    if (spawnTimer >= spawnRate) {
+      spawnEnemy();
+      spawnTimer = 0;
+    }
+  }
+
+  // Jefe + sus disparos
+  if (boss) {
+    updateBoss();
+    for (let i = bossShots.length - 1; i >= 0; i--) {
+      const s = bossShots[i];
+      s.x += s.vx; s.y += s.vy; s.life--;
+      if (s.life <= 0 || s.x < -40 || s.x > canvas.width + 40 || s.y < -40 || s.y > canvas.height + 40) bossShots.splice(i, 1);
+    }
+    if (bossShots.length > 160) bossShots.splice(0, bossShots.length - 160); // tope anti-lag
   }
 
   // Spawn fruits
@@ -3060,6 +3300,9 @@ function draw() {
   // Draw enemies
   enemies.forEach(e => drawEnemy(e));
 
+  // Draw jefe + sus disparos
+  if (boss) { drawBossShots(); drawBoss(); }
+
   // Draw fireballs
   fireballs.forEach(fb => drawFireball(fb));
 
@@ -3091,6 +3334,9 @@ function draw() {
     }
   });
 
+  // Barra de vida del jefe
+  if (boss) drawBossUI();
+
   // Draw cursor (solo util para el jugador 1 con mouse)
   if (numPlayers === 1) drawCursor();
 
@@ -3120,6 +3366,8 @@ function startGame(n) {
   level = 1;
   island = 1;
   travel.active = false;
+  boss = null;
+  bossShots = [];
   bgHue = islandTheme(1).bgHue;
   enemySpeed = 0.5;
   enemies = [];
