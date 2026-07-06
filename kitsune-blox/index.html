@@ -3488,19 +3488,28 @@ function drawBossCaesar(b, S) {
 
   // Cuello + cabeza
   ctx.fillStyle = face; ctx.fillRect(-S * 0.06, -S * 0.5, S * 0.12, S * 0.14);
-  // pelo negro (masa alborotada) detras
+  // pelo negro largo y alborotado (detras)
   ctx.fillStyle = hair;
   ctx.beginPath();
-  ctx.moveTo(-S * 0.24, hy + S * 0.1);
-  ctx.lineTo(-S * 0.36, hy - S * 0.1); ctx.lineTo(-S * 0.24, hy - S * 0.1);
-  ctx.lineTo(-S * 0.3, hy - S * 0.28); ctx.lineTo(-S * 0.12, hy - S * 0.16);
-  ctx.lineTo(-S * 0.14, hy - S * 0.34); ctx.lineTo(0, hy - S * 0.2);
-  ctx.lineTo(S * 0.14, hy - S * 0.34); ctx.lineTo(S * 0.12, hy - S * 0.16);
-  ctx.lineTo(S * 0.3, hy - S * 0.28); ctx.lineTo(S * 0.24, hy - S * 0.1);
-  ctx.lineTo(S * 0.36, hy - S * 0.1); ctx.lineTo(S * 0.24, hy + S * 0.1);
-  ctx.quadraticCurveTo(S * 0.3, hy + S * 0.5, S * 0.12, hy + S * 0.55);
-  ctx.lineTo(-S * 0.12, hy + S * 0.55);
-  ctx.quadraticCurveTo(-S * 0.3, hy + S * 0.5, -S * 0.24, hy + S * 0.1);
+  ctx.moveTo(-S * 0.2, hy + S * 0.12);
+  // mechon largo izquierdo (baja hasta el pecho)
+  ctx.lineTo(-S * 0.42, hy + S * 0.4); ctx.lineTo(-S * 0.28, hy + S * 0.58);
+  ctx.lineTo(-S * 0.46, hy + S * 0.95); ctx.lineTo(-S * 0.3, hy + S * 1.05);
+  ctx.lineTo(-S * 0.4, hy + S * 1.35); ctx.lineTo(-S * 0.18, hy + S * 1.0);
+  ctx.lineTo(-S * 0.24, hy + S * 0.5); ctx.lineTo(-S * 0.16, hy + S * 0.12);
+  // corona alborotada izq -> der
+  ctx.lineTo(-S * 0.38, hy - S * 0.06); ctx.lineTo(-S * 0.22, hy - S * 0.14);
+  ctx.lineTo(-S * 0.38, hy - S * 0.34); ctx.lineTo(-S * 0.16, hy - S * 0.2);
+  ctx.lineTo(-S * 0.22, hy - S * 0.5); ctx.lineTo(-S * 0.04, hy - S * 0.24);
+  ctx.lineTo(0, hy - S * 0.54); ctx.lineTo(S * 0.04, hy - S * 0.24);
+  ctx.lineTo(S * 0.22, hy - S * 0.5); ctx.lineTo(S * 0.16, hy - S * 0.2);
+  ctx.lineTo(S * 0.38, hy - S * 0.34); ctx.lineTo(S * 0.22, hy - S * 0.14);
+  ctx.lineTo(S * 0.38, hy - S * 0.06); ctx.lineTo(S * 0.16, hy + S * 0.12);
+  // mechon largo derecho
+  ctx.lineTo(S * 0.24, hy + S * 0.5); ctx.lineTo(S * 0.18, hy + S * 1.0);
+  ctx.lineTo(S * 0.4, hy + S * 1.35); ctx.lineTo(S * 0.3, hy + S * 1.05);
+  ctx.lineTo(S * 0.46, hy + S * 0.95); ctx.lineTo(S * 0.28, hy + S * 0.58);
+  ctx.lineTo(S * 0.42, hy + S * 0.4); ctx.lineTo(S * 0.2, hy + S * 0.12);
   ctx.closePath(); ctx.fill();
   // cuernos curvos
   for (const s of [-1, 1]) {
