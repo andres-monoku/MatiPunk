@@ -3139,11 +3139,113 @@ function drawBossLucci(b, S) {
   ctx.fillStyle = '#2a2a2a'; ctx.beginPath(); ctx.arc(px + S * 0.03, py - S * 0.1, S * 0.012, 0, Math.PI * 2); ctx.fill();
 }
 
+function drawBossMoria(b, S) {
+  const coat = '#20212a', coatD = '#131420', orange = '#e8912a', panel = '#f0d84a', gridL = '#8a5210';
+  const face = '#efeae2', faceSh = '#cfc7b8', moh = '#8f2f8f', mohHi = '#b84ab8';
+  const frill = '#e9e9ef', frillSh = '#c6c6d2', cross = '#7a3aaa', collar = '#161822';
+  const cuff = '#5a5aa0', stud = '#e8d060', shoe = '#161620', strap = '#c8a860';
+  const hy = -S * 1.05;
+
+  // Abrigo negro (detras, ancho)
+  ctx.fillStyle = coat;
+  ctx.beginPath();
+  ctx.moveTo(-S * 0.32, -S * 0.5); ctx.quadraticCurveTo(-S * 1.0, -S * 0.25, -S * 0.86, S * 0.85);
+  ctx.lineTo(-S * 0.4, S * 1.05); ctx.lineTo(S * 0.4, S * 1.05);
+  ctx.quadraticCurveTo(S * 1.0, -S * 0.25, S * 0.32, -S * 0.5); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#c8b060';
+  for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.arc(-S * 0.5, -S * 0.1 + i * S * 0.3, S * 0.03, 0, Math.PI * 2); ctx.arc(S * 0.5, -S * 0.1 + i * S * 0.3, S * 0.03, 0, Math.PI * 2); ctx.fill(); }
+
+  // Brazos largos negros con garras + brazaletes con tachas
+  for (const s of [-1, 1]) {
+    ctx.strokeStyle = coat; ctx.lineWidth = S * 0.13; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(s * S * 0.28, -S * 0.46); ctx.quadraticCurveTo(s * S * 0.9, -S * 0.35, s * S * 1.02, S * 0.5); ctx.stroke();
+    ctx.lineCap = 'butt';
+    ctx.fillStyle = coatD; ctx.beginPath(); ctx.ellipse(s * S * 1.02, S * 0.62, S * 0.09, S * 0.14, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = coatD; ctx.lineWidth = S * 0.035;
+    for (let c = -1; c <= 1; c++) { ctx.beginPath(); ctx.moveTo(s * S * 1.02 + c * S * 0.05, S * 0.72); ctx.lineTo(s * S * 1.02 + c * S * 0.05, S * 0.86); ctx.stroke(); }
+    // brazaletes
+    for (const p of [{ x: 0.62, y: -0.4 }, { x: 1.0, y: 0.42 }]) {
+      ctx.save(); ctx.translate(s * S * p.x, S * p.y); ctx.rotate(s * 0.4);
+      ctx.fillStyle = cuff; ctx.fillRect(-S * 0.12, -S * 0.07, S * 0.24, S * 0.14);
+      ctx.fillStyle = stud; for (let k = -2; k <= 2; k++) { ctx.beginPath(); ctx.arc(k * S * 0.045, 0, S * 0.02, 0, Math.PI * 2); ctx.fill(); }
+      ctx.restore();
+    }
+  }
+
+  // Cuerpo redondo naranja con grilla
+  ctx.save();
+  ctx.beginPath(); ctx.ellipse(0, S * 0.55, S * 0.88, S * 0.95, 0, 0, Math.PI * 2); ctx.clip();
+  ctx.fillStyle = orange; ctx.fillRect(-S, -S * 0.6, 2 * S, 2.2 * S);
+  ctx.fillStyle = panel;
+  for (let row = 0; row < 5; row++) for (let col = -3; col <= 3; col++) { const yy = -S * 0.3 + row * S * 0.34, xx = col * S * 0.26; ctx.beginPath(); ctx.rect(xx - S * 0.09, yy, S * 0.18, S * 0.22); ctx.fill(); }
+  ctx.strokeStyle = gridL; ctx.lineWidth = S * 0.02;
+  for (let col = -3; col <= 3; col++) { ctx.beginPath(); ctx.moveTo(col * S * 0.26, -S * 0.5); ctx.quadraticCurveTo(col * S * 0.42, S * 0.55, col * S * 0.26, S * 1.6); ctx.stroke(); }
+  ctx.restore();
+  ctx.strokeStyle = gridL; ctx.lineWidth = S * 0.02; ctx.beginPath(); ctx.ellipse(0, S * 0.55, S * 0.88, S * 0.95, 0, 0, Math.PI * 2); ctx.stroke();
+
+  // Cinturon con tachas + hebilla
+  ctx.fillStyle = '#3a2030'; ctx.fillRect(-S * 0.7, -S * 0.12, S * 1.4, S * 0.2);
+  ctx.fillStyle = '#e0e0e6'; for (let k = -6; k <= 6; k++) { if (Math.abs(k) < 2) continue; ctx.fillRect(k * S * 0.1 - S * 0.03, -S * 0.08, S * 0.06, S * 0.12); }
+  ctx.fillStyle = '#9aa0a8'; ctx.fillRect(-S * 0.14, -S * 0.16, S * 0.28, S * 0.28);
+  ctx.fillStyle = '#3a2030'; ctx.fillRect(-S * 0.09, -S * 0.11, S * 0.18, S * 0.18);
+
+  // Gorguera blanca con volados
+  ctx.fillStyle = frill;
+  ctx.beginPath(); ctx.moveTo(-S * 0.5, -S * 0.5);
+  for (let i = 0; i <= 8; i++) { const x = -S * 0.5 + i * S * 0.125; const y = -S * 0.12 + (i % 2 ? -S * 0.05 : S * 0.02); ctx.lineTo(x, y); }
+  ctx.lineTo(S * 0.5, -S * 0.5); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = frillSh; ctx.lineWidth = 1; ctx.stroke();
+  // cruz morada
+  ctx.strokeStyle = cross; ctx.lineWidth = S * 0.04;
+  ctx.beginPath(); ctx.moveTo(0, -S * 0.42); ctx.lineTo(0, -S * 0.18); ctx.moveTo(-S * 0.07, -S * 0.34); ctx.lineTo(S * 0.07, -S * 0.34); ctx.stroke();
+  ctx.fillStyle = cross; ctx.beginPath(); ctx.arc(0, -S * 0.44, S * 0.03, 0, Math.PI * 2); ctx.fill();
+
+  // Collar de vampiro (negro, puntiagudo)
+  ctx.fillStyle = collar;
+  ctx.beginPath(); ctx.moveTo(-S * 0.08, -S * 0.52); ctx.lineTo(-S * 0.55, -S * 0.72); ctx.lineTo(-S * 0.12, -S * 0.62); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(S * 0.08, -S * 0.52); ctx.lineTo(S * 0.55, -S * 0.72); ctx.lineTo(S * 0.12, -S * 0.62); ctx.closePath(); ctx.fill();
+
+  // Cuello largo blanco con cordon en X
+  ctx.fillStyle = face; ctx.fillRect(-S * 0.09, -S * 0.85, S * 0.18, S * 0.38);
+  ctx.strokeStyle = '#b8a030'; ctx.lineWidth = S * 0.015;
+  for (let i = 0; i < 4; i++) { const yy = -S * 0.8 + i * S * 0.08; ctx.beginPath(); ctx.moveTo(-S * 0.05, yy); ctx.lineTo(S * 0.05, yy + S * 0.05); ctx.moveTo(S * 0.05, yy); ctx.lineTo(-S * 0.05, yy + S * 0.05); ctx.stroke(); }
+
+  // Cabeza palida
+  ctx.fillStyle = face; ctx.beginPath(); ctx.ellipse(0, hy, S * 0.2, S * 0.24, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = faceSh; ctx.lineWidth = 1; ctx.stroke();
+  // orejas puntiagudas
+  ctx.fillStyle = face;
+  ctx.beginPath(); ctx.moveTo(-S * 0.18, hy); ctx.lineTo(-S * 0.34, hy - S * 0.02); ctx.lineTo(-S * 0.17, hy + S * 0.08); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(S * 0.18, hy); ctx.lineTo(S * 0.34, hy - S * 0.02); ctx.lineTo(S * 0.17, hy + S * 0.08); ctx.closePath(); ctx.fill();
+  // cuernitos
+  ctx.fillStyle = '#f4f0e6';
+  ctx.beginPath(); ctx.moveTo(-S * 0.1, hy - S * 0.18); ctx.lineTo(-S * 0.16, hy - S * 0.3); ctx.lineTo(-S * 0.04, hy - S * 0.2); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(S * 0.1, hy - S * 0.18); ctx.lineTo(S * 0.16, hy - S * 0.3); ctx.lineTo(S * 0.04, hy - S * 0.2); ctx.closePath(); ctx.fill();
+  // cresta morada (flama)
+  ctx.fillStyle = moh;
+  ctx.beginPath(); ctx.moveTo(-S * 0.06, hy - S * 0.2); ctx.quadraticCurveTo(-S * 0.04, hy - S * 0.6, S * 0.06, hy - S * 0.7); ctx.quadraticCurveTo(-S * 0.02, hy - S * 0.5, S * 0.08, hy - S * 0.2); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = mohHi; ctx.lineWidth = S * 0.015; ctx.stroke();
+  // ojos malvados
+  ctx.fillStyle = '#c02020'; ctx.beginPath(); ctx.ellipse(-S * 0.08, hy - S * 0.04, S * 0.035, S * 0.02, -0.3, 0, Math.PI * 2); ctx.ellipse(S * 0.08, hy - S * 0.04, S * 0.035, S * 0.02, 0.3, 0, Math.PI * 2); ctx.fill();
+  // sonrisa dentada enorme
+  ctx.fillStyle = '#b01818'; ctx.beginPath(); ctx.ellipse(0, hy + S * 0.12, S * 0.16, S * 0.1, 0, 0, Math.PI); ctx.fill();
+  ctx.fillStyle = '#fff';
+  for (let i = -3; i <= 3; i++) { ctx.beginPath(); ctx.moveTo(i * S * 0.045, hy + S * 0.12); ctx.lineTo(i * S * 0.045 + S * 0.02, hy + S * 0.2); ctx.lineTo(i * S * 0.045 + S * 0.04, hy + S * 0.12); ctx.closePath(); ctx.fill(); }
+
+  // Zapatos con correa + medias
+  for (const s of [-1, 1]) {
+    ctx.fillStyle = '#e8e8ee'; ctx.fillRect(s * S * 0.25 - S * 0.05, S * 1.35, S * 0.1, S * 0.1);
+    ctx.fillStyle = shoe; ctx.beginPath(); ctx.ellipse(s * S * 0.27, S * 1.5, S * 0.16, S * 0.08, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = strap; ctx.fillRect(s * S * 0.2, S * 1.46, S * 0.14, S * 0.03);
+  }
+}
+
 const BOSS_ART = {
   Buggy: drawBossBuggy,
   Crocodile: drawBossCrocodile,
   Enel: drawBossEnel,
   'Rob Lucci': drawBossLucci,
+  'Gecko Moria': drawBossMoria,
 };
 
 function drawBossUI() {
