@@ -3940,6 +3940,111 @@ function drawBossPerospero(b, S) {
   for (let k = 0; k < 6; k++) { const x = -S * 0.16 + k * S * 0.06, y = hy - S * 0.24 - (k % 2) * S * 0.05; ctx.strokeStyle = '#fff'; ctx.lineWidth = S * 0.008; ctx.beginPath(); ctx.moveTo(x, hy - S * 0.18); ctx.lineTo(x, y); ctx.stroke(); ctx.fillStyle = lolliC[k % 5]; ctx.beginPath(); ctx.arc(x, y, S * 0.025, 0, Math.PI * 2); ctx.fill(); }
 }
 
+function drawBossDaifuku(b, S) {
+  const coat = '#1a4ad8', coatSh = '#123a9a', fur = '#f2ede0', furSh = '#d0c8b0', cape = '#a83020', capeLin = '#f0dc9a';
+  const gold = '#e8c030', goldSh = '#a88010', orange = '#e87820', orangeSh = '#b85810', ball = '#4ab0e8', ballW = '#f0f4f8';
+  const skin = '#e8c49a', skinSh = '#c89c70', hair = '#e8d048', boot = '#e87820';
+  const hy = -S * 0.56;
+
+  // Capa roja detras con forro crema
+  ctx.fillStyle = capeLin;
+  ctx.beginPath(); ctx.moveTo(-S * 0.4, -S * 0.25); ctx.quadraticCurveTo(-S * 0.7, S * 0.5, -S * 0.5, S * 1.2); ctx.lineTo(S * 0.5, S * 1.2); ctx.quadraticCurveTo(S * 0.7, S * 0.5, S * 0.4, -S * 0.25); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = cape;
+  ctx.beginPath(); ctx.moveTo(-S * 0.36, -S * 0.25); ctx.quadraticCurveTo(-S * 0.6, S * 0.5, -S * 0.42, S * 1.16); ctx.lineTo(S * 0.42, S * 1.16); ctx.quadraticCurveTo(S * 0.6, S * 0.5, S * 0.36, -S * 0.25); ctx.quadraticCurveTo(0, S * 0.0, -S * 0.36, -S * 0.25); ctx.closePath(); ctx.fill();
+
+  // Grandes esferas azules a rayas en los hombros
+  const stripeBall = (cx, cy, r) => {
+    ctx.fillStyle = ballW; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = ball;
+    ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
+    for (let i = -3; i <= 3; i += 2) { ctx.beginPath(); ctx.moveTo(cx + i * r * 0.32, cy - r); ctx.quadraticCurveTo(cx + i * r * 0.5, cy, cx + i * r * 0.32, cy + r); ctx.lineTo(cx + (i + 1) * r * 0.32, cy + r); ctx.quadraticCurveTo(cx + (i + 1) * r * 0.5, cy, cx + (i + 1) * r * 0.32, cy - r); ctx.closePath(); ctx.fill(); }
+    ctx.restore();
+    ctx.strokeStyle = coatSh; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.beginPath(); ctx.arc(cx - r * 0.3, cy - r * 0.35, r * 0.2, 0, Math.PI * 2); ctx.fill();
+  };
+  stripeBall(-S * 0.5, hy + S * 0.22, S * 0.28);
+  stripeBall(S * 0.5, hy + S * 0.22, S * 0.28);
+
+  // Piernas azules
+  ctx.fillStyle = coat;
+  for (const lx of [-1, 1]) { ctx.beginPath(); ctx.moveTo(lx * S * 0.04, S * 0.5); ctx.lineTo(lx * S * 0.22, S * 0.55); ctx.lineTo(lx * S * 0.2, S * 0.92); ctx.lineTo(lx * S * 0.08, S * 0.92); ctx.closePath(); ctx.fill(); }
+  // bolitas a rayas en las rodillas
+  stripeBall(-S * 0.15, S * 0.92, S * 0.09);
+  stripeBall(S * 0.15, S * 0.92, S * 0.09);
+  // botas naranjas puntiagudas
+  ctx.fillStyle = boot;
+  for (const lx of [-1, 1]) { ctx.beginPath(); ctx.moveTo(lx * S * 0.08, S * 1.0); ctx.lineTo(lx * S * 0.22, S * 1.02); ctx.lineTo(lx * S * 0.2, S * 1.22); ctx.lineTo(lx * S * 0.34, S * 1.28); ctx.lineTo(lx * S * 0.32, S * 1.34); ctx.lineTo(lx * S * 0.06, S * 1.3); ctx.closePath(); ctx.fill(); }
+  ctx.strokeStyle = orangeSh; ctx.lineWidth = 1; ctx.stroke();
+
+  // Abrigo azul (cuerpo)
+  ctx.fillStyle = coat;
+  ctx.beginPath(); ctx.moveTo(-S * 0.28, hy + S * 0.18); ctx.lineTo(S * 0.28, hy + S * 0.18); ctx.quadraticCurveTo(S * 0.34, S * 0.1, S * 0.32, S * 0.5); ctx.lineTo(-S * 0.32, S * 0.5); ctx.quadraticCurveTo(-S * 0.34, S * 0.1, -S * 0.28, hy + S * 0.18); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = coatSh; ctx.lineWidth = 1; ctx.stroke();
+  // franjas blancas verticales
+  ctx.strokeStyle = fur; ctx.lineWidth = S * 0.02;
+  ctx.beginPath(); ctx.moveTo(-S * 0.14, hy + S * 0.2); ctx.lineTo(-S * 0.16, S * 0.46); ctx.moveTo(S * 0.14, hy + S * 0.2); ctx.lineTo(S * 0.16, S * 0.46); ctx.stroke();
+
+  // Piel blanca del cuello (abierta en V)
+  ctx.fillStyle = fur;
+  ctx.beginPath(); ctx.moveTo(-S * 0.28, hy + S * 0.14); ctx.lineTo(0, S * 0.44); ctx.lineTo(S * 0.28, hy + S * 0.14); ctx.lineTo(S * 0.22, hy + S * 0.1); ctx.lineTo(0, S * 0.34); ctx.lineTo(-S * 0.22, hy + S * 0.1); ctx.closePath(); ctx.fill();
+  // piel blanca del borde inferior (esponjosa)
+  ctx.fillStyle = fur; for (let i = -3; i <= 3; i++) { ctx.beginPath(); ctx.arc(i * S * 0.09, S * 0.5, S * 0.06, 0, Math.PI * 2); ctx.fill(); }
+
+  // Cinturon dorado con emblema
+  ctx.fillStyle = gold; ctx.fillRect(-S * 0.3, S * 0.34, S * 0.6, S * 0.1);
+  ctx.strokeStyle = goldSh; ctx.lineWidth = 1; ctx.strokeRect(-S * 0.3, S * 0.34, S * 0.6, S * 0.1);
+  ctx.fillStyle = goldSh; for (let i = -5; i <= 5; i++) { if (Math.abs(i) < 2) continue; ctx.beginPath(); ctx.arc(i * S * 0.045, S * 0.39, S * 0.01, 0, Math.PI * 2); ctx.fill(); }
+  // hebilla circular con genio/tetera
+  ctx.fillStyle = gold; ctx.beginPath(); ctx.arc(0, S * 0.39, S * 0.075, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = goldSh; ctx.lineWidth = S * 0.01; ctx.stroke();
+  ctx.fillStyle = coat; ctx.beginPath(); ctx.arc(0, S * 0.39, S * 0.05, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = gold; ctx.beginPath(); ctx.ellipse(-S * 0.005, S * 0.4, S * 0.035, S * 0.022, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(S * 0.02, S * 0.38); ctx.lineTo(S * 0.05, S * 0.36); ctx.lineTo(S * 0.04, S * 0.4); ctx.closePath(); ctx.fill();
+
+  // Hombreras doradas con tachuelas
+  ctx.fillStyle = gold;
+  for (const lx of [-1, 1]) { ctx.save(); ctx.translate(lx * S * 0.3, hy + S * 0.2); ctx.rotate(lx * 0.4); ctx.beginPath(); ctx.ellipse(0, 0, S * 0.13, S * 0.06, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#a0f0a0'; for (let i = -2; i <= 2; i++) { ctx.beginPath(); ctx.arc(i * S * 0.04, 0, S * 0.012, 0, Math.PI * 2); ctx.fill(); } ctx.fillStyle = gold; ctx.restore(); }
+
+  // Brazos naranjas segmentados
+  ctx.strokeStyle = orange; ctx.lineWidth = S * 0.11; ctx.lineCap = 'round';
+  // brazo izquierdo doblado (mano al frente)
+  ctx.beginPath(); ctx.moveTo(-S * 0.34, hy + S * 0.24); ctx.lineTo(-S * 0.5, hy + S * 0.42); ctx.lineTo(-S * 0.14, hy + S * 0.5); ctx.stroke();
+  // brazo derecho colgando
+  ctx.beginPath(); ctx.moveTo(S * 0.34, hy + S * 0.24); ctx.lineTo(S * 0.44, S * 0.1); ctx.lineTo(S * 0.4, S * 0.5); ctx.stroke();
+  ctx.lineCap = 'butt';
+  // segmentos de los brazos
+  ctx.strokeStyle = orangeSh; ctx.lineWidth = S * 0.012;
+  ctx.beginPath(); ctx.moveTo(S * 0.38, S * 0.28); ctx.lineTo(S * 0.5, S * 0.26); ctx.stroke();
+  // manos
+  ctx.fillStyle = orange; ctx.beginPath(); ctx.arc(-S * 0.14, hy + S * 0.5, S * 0.07, 0, Math.PI * 2); ctx.arc(S * 0.4, S * 0.52, S * 0.06, 0, Math.PI * 2); ctx.fill();
+
+  // Cuello de piel blanca esponjoso (gran collar)
+  ctx.fillStyle = fur;
+  for (let i = 0; i < 14; i++) { const a = -Math.PI * 0.9 + i * (Math.PI * 1.8 / 13); ctx.beginPath(); ctx.arc(Math.cos(a) * S * 0.2, hy + S * 0.14 + Math.sin(a) * S * 0.16, S * 0.06, 0, Math.PI * 2); ctx.fill(); }
+
+  // Cabeza
+  ctx.fillStyle = skin; ctx.beginPath(); ctx.ellipse(0, hy, S * 0.15, S * 0.17, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = skinSh; ctx.lineWidth = 1; ctx.stroke();
+  // mejillas/arrugas
+  ctx.strokeStyle = skinSh; ctx.lineWidth = S * 0.008; ctx.beginPath(); ctx.arc(-S * 0.09, hy + S * 0.04, S * 0.05, -0.4, 0.9); ctx.arc(S * 0.09, hy + S * 0.04, S * 0.05, Math.PI - 0.9, Math.PI + 0.4); ctx.stroke();
+  // ojos enojados
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(-S * 0.06, hy - S * 0.02, S * 0.025, S * 0.03, 0, 0, Math.PI * 2); ctx.ellipse(S * 0.06, hy - S * 0.02, S * 0.025, S * 0.03, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#2a1a10'; ctx.beginPath(); ctx.arc(-S * 0.06, hy - S * 0.01, S * 0.012, 0, Math.PI * 2); ctx.arc(S * 0.06, hy - S * 0.01, S * 0.012, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#b09030'; ctx.lineWidth = S * 0.016; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-S * 0.11, hy - S * 0.08); ctx.lineTo(-S * 0.02, hy - S * 0.04); ctx.moveTo(S * 0.11, hy - S * 0.08); ctx.lineTo(S * 0.02, hy - S * 0.04); ctx.stroke(); ctx.lineCap = 'butt';
+  // boca de dientes apretados
+  ctx.fillStyle = '#5a1a10'; ctx.fillRect(-S * 0.05, hy + S * 0.08, S * 0.1, S * 0.03);
+  ctx.strokeStyle = '#f0e8d0'; ctx.lineWidth = S * 0.018; ctx.beginPath(); ctx.moveTo(-S * 0.05, hy + S * 0.085); ctx.lineTo(S * 0.05, hy + S * 0.085); ctx.stroke();
+  ctx.strokeStyle = '#8a5a1a'; ctx.lineWidth = S * 0.006; for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(i * S * 0.03, hy + S * 0.08); ctx.lineTo(i * S * 0.03, hy + S * 0.11); ctx.stroke(); }
+  // pendientes
+  ctx.fillStyle = gold; ctx.beginPath(); ctx.arc(-S * 0.15, hy + S * 0.06, S * 0.018, 0, Math.PI * 2); ctx.arc(S * 0.15, hy + S * 0.06, S * 0.018, 0, Math.PI * 2); ctx.fill();
+
+  // Pelo rubio corto rizado
+  ctx.fillStyle = hair;
+  for (let k = 0; k < 9; k++) { const x = -S * 0.12 + k * S * 0.03; ctx.beginPath(); ctx.arc(x, hy - S * 0.15, S * 0.035, 0, Math.PI * 2); ctx.fill(); }
+  ctx.fillStyle = '#c8b030'; for (let k = 0; k < 6; k++) { ctx.beginPath(); ctx.arc(-S * 0.09 + k * S * 0.036, hy - S * 0.14, S * 0.012, 0, Math.PI * 2); ctx.fill(); }
+}
+
 function drawBossOven(b, S) {
   const skin = '#e8c4a0', skinSh = '#c89c74', capeO = '#e07a1a', capeIn = '#8a2018', collar = '#e88a2a';
   const flameR = '#e82818', flameO = '#f08a1a', beard = '#e07820', ribbon = '#f0cc20';
@@ -4796,6 +4901,7 @@ const BOSS_ART = {
   'Big Mom': drawBossBigMom,
   Usopp: drawBossUsopp,
   Oven: drawBossOven,
+  Daifuku: drawBossDaifuku,
 };
 
 function drawBossUI() {
