@@ -2887,9 +2887,7 @@ function updateBoss() {
     bossShots.push({ x: b.x, y: b.y, vx: Math.cos(aim) * 5, vy: Math.sin(aim) * 5, size: 14, life: 170, dmg: b.dmg + 1, color: b.color });
     screenShake = 8;
   }
-  // invocar minions
-  b.spawnCD--;
-  if (b.spawnCD <= 0 && enemies.length < 12) { b.spawnCD = 240; const n = 2 + Math.floor(island / 5); for (let i = 0; i < n; i++) spawnEnemy(); }
+  // (El jefe ya no invoca minions: la pelea es solo contra el jefe)
 }
 
 function defeatBoss() {
