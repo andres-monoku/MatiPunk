@@ -3905,9 +3905,14 @@ function drawBossPerospero(b, S) {
   ctx.lineCap = 'butt';
   ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(S * 0.06, S * 0.06, S * 0.05, 0, Math.PI * 2); ctx.fill();
 
-  // Algodon de azucar (pelo) a los lados
+  // Algodon de azucar rosa (grande y esponjoso) a los lados
   ctx.fillStyle = cotton;
-  for (const s of [-1, 1]) for (let k = 0; k < 5; k++) { ctx.beginPath(); ctx.arc(s * S * 0.2 + (k % 2) * s * S * 0.04, hy - S * 0.28 + k * S * 0.06, S * 0.06, 0, Math.PI * 2); ctx.fill(); }
+  const cottonCloud = (cx, cy, scale) => {
+    for (let k = 0; k < 16; k++) { const a = k * 0.55; const rr = S * scale * (0.5 + 0.25 * Math.sin(k * 1.7)); ctx.beginPath(); ctx.arc(cx + Math.cos(a) * S * scale * 0.55, cy + Math.sin(a) * S * scale * 0.5, rr, 0, Math.PI * 2); ctx.fill(); }
+    ctx.beginPath(); ctx.arc(cx, cy, S * scale * 0.75, 0, Math.PI * 2); ctx.fill();
+  };
+  cottonCloud(-S * 0.4, hy, 0.42);
+  cottonCloud(S * 0.42, hy - S * 0.05, 0.5);
 
   // Cabeza + lengua + sonrisa
   ctx.fillStyle = skin; ctx.beginPath(); ctx.ellipse(0, hy, S * 0.14, S * 0.17, 0, 0, Math.PI * 2); ctx.fill();
