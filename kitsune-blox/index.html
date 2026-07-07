@@ -5840,12 +5840,7 @@ function update() {
     if (bossShots.length > 160) bossShots.splice(0, bossShots.length - 160); // tope anti-lag
   }
 
-  // Spawn fruits
-  fruitSpawnTimer++;
-  if (fruitSpawnTimer >= 200) {
-    spawnFruit();
-    fruitSpawnTimer = 0;
-  }
+  // (Las frutas ya no salen en la pelea: solo se consiguen al viajar de isla en isla)
 
   // Move enemies toward nearest alive player
   enemies.forEach(e => {
