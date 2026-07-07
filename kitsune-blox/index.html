@@ -3867,7 +3867,7 @@ function drawBossKatakuri(b, S) {
   const skin = '#d8a878', skinSh = '#b0824e', furW = '#e8e4d0', furB = '#1a1a1a';
   const vest = '#181820', stud = '#9a9aa4', pink = '#e85a8a', belt = '#15151c', buckle = '#d4d4dc';
   const spike = '#6a6a82', pants = '#191922', hair = '#c03a6a', pole = '#7a2a2a', claw = '#c4c4cc', glove = '#4a3a2a';
-  const hy = -S * 0.86;
+  const hy = -S * 0.66;
 
   // Tridente diagonal detras
   ctx.strokeStyle = pole; ctx.lineWidth = S * 0.028; ctx.lineCap = 'round';
@@ -3929,15 +3929,7 @@ function drawBossKatakuri(b, S) {
   ctx.fillStyle = buckle; for (let k = 0; k < 12; k++) { const a = k * Math.PI / 6; ctx.beginPath(); ctx.moveTo(Math.cos(a) * S * 0.05, S * 0.42 + Math.sin(a) * S * 0.05); ctx.lineTo(Math.cos(a) * S * 0.08, S * 0.42 + Math.sin(a) * S * 0.08); ctx.lineTo(Math.cos(a + 0.2) * S * 0.05, S * 0.42 + Math.sin(a + 0.2) * S * 0.05); ctx.closePath(); ctx.fill(); }
   ctx.beginPath(); ctx.arc(0, S * 0.42, S * 0.05, 0, Math.PI * 2); ctx.fillStyle = buckle; ctx.fill(); ctx.fillStyle = '#333'; ctx.beginPath(); ctx.arc(0, S * 0.42, S * 0.02, 0, Math.PI * 2); ctx.fill();
 
-  // Cuello de piel (mantle) blanco con rayas negras
-  const mantle = (cy, col) => {
-    ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(-S * 0.56, cy - S * 0.08);
-    const n = 18; for (let i = 0; i <= n; i++) { const x = -S * 0.56 + (1.12 * S) * (i / n); const y = cy + (i % 2 ? S * 0.05 : 0); ctx.lineTo(x, y); }
-    ctx.lineTo(S * 0.56, cy - S * 0.08); ctx.quadraticCurveTo(0, cy - S * 0.26, -S * 0.56, cy - S * 0.08); ctx.closePath(); ctx.fill();
-  };
-  mantle(-S * 0.24, furB); mantle(-S * 0.3, furW); mantle(-S * 0.37, furB); mantle(-S * 0.44, furW);
-
-  // Cabeza + pelo magenta
+  // Cabeza + pelo magenta (se dibuja antes que la bufanda para quedar tapada)
   ctx.fillStyle = skin; ctx.fillRect(-S * 0.07, -S * 0.5, S * 0.14, S * 0.12);
   ctx.beginPath(); ctx.ellipse(0, hy, S * 0.15, S * 0.17, 0, 0, Math.PI * 2); ctx.fill();
   ctx.strokeStyle = skinSh; ctx.lineWidth = 1; ctx.stroke();
@@ -3946,6 +3938,14 @@ function drawBossKatakuri(b, S) {
   // ojos serios
   ctx.strokeStyle = '#3a1a24'; ctx.lineWidth = S * 0.02; ctx.beginPath(); ctx.moveTo(-S * 0.11, hy - S * 0.03); ctx.lineTo(-S * 0.02, hy - S * 0.01); ctx.moveTo(S * 0.11, hy - S * 0.03); ctx.lineTo(S * 0.02, hy - S * 0.01); ctx.stroke();
   ctx.fillStyle = '#2a1a10'; ctx.beginPath(); ctx.arc(-S * 0.06, hy + S * 0.01, S * 0.015, 0, Math.PI * 2); ctx.arc(S * 0.06, hy + S * 0.01, S * 0.015, 0, Math.PI * 2); ctx.fill();
+
+  // Cuello de piel (bufanda) blanco con rayas negras: tapa la parte baja de la cara
+  const mantle = (cy, col) => {
+    ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(-S * 0.56, cy - S * 0.08);
+    const n = 18; for (let i = 0; i <= n; i++) { const x = -S * 0.56 + (1.12 * S) * (i / n); const y = cy + (i % 2 ? S * 0.05 : 0); ctx.lineTo(x, y); }
+    ctx.lineTo(S * 0.56, cy - S * 0.08); ctx.quadraticCurveTo(0, cy - S * 0.24, -S * 0.56, cy - S * 0.08); ctx.closePath(); ctx.fill();
+  };
+  mantle(-S * 0.26, furB); mantle(-S * 0.33, furW); mantle(-S * 0.4, furB); mantle(-S * 0.47, furW);
 }
 
 function drawBossDoflamingo(b, S) {
