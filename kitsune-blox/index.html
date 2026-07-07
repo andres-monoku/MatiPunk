@@ -199,6 +199,31 @@
     text-shadow: 0 0 40px #7b2fff, 0 0 80px #00e5ff;
     z-index: 60; display: none; pointer-events: none;
   }
+
+  /* ===== Modo Batalla ===== */
+  #battle-select {
+    position: fixed; inset: 0; background: radial-gradient(ellipse at center, #2a0010, #0a0015 75%);
+    display: none; align-items: center; justify-content: center; z-index: 130; cursor: default;
+  }
+  .battle-card {
+    background: rgba(10,0,20,0.9); border: 3px solid #ff6a00; border-radius: 22px;
+    padding: 20px 24px; text-align: center; box-shadow: 0 0 50px rgba(255,80,0,0.5);
+    max-width: 94vw; max-height: 92vh; display: flex; flex-direction: column;
+  }
+  .battle-title { color:#fff; font-size: 30px; font-weight:bold; text-shadow: 0 0 20px #ff5500; margin-bottom: 8px; }
+  .battle-turn { color:#ffcc00; font-size: 20px; font-weight:bold; margin-bottom: 16px; text-shadow: 0 0 12px #ff8800; }
+  #battle-fruits {
+    display: grid; grid-template-columns: repeat(auto-fill, 96px); gap: 10px;
+    justify-content: center; overflow-y: auto; padding: 6px; flex: 1;
+  }
+  .bf-item {
+    background: rgba(255,255,255,0.05); border: 2px solid #7b2fff; border-radius: 12px;
+    padding: 8px 4px; width: 96px; cursor: pointer; transition: transform .1s;
+  }
+  .bf-item:hover { transform: scale(1.08); border-color: #ffcc00; background: rgba(255,120,0,0.15); }
+  .bf-emoji { font-size: 30px; }
+  .bf-name { color:#fff; font-size: 13px; font-weight: bold; margin-top: 2px; }
+  .bf-tier { font-size: 12px; font-weight: bold; margin-top: 1px; }
 </style>
 </head>
 <body>
@@ -207,6 +232,7 @@
   <h1>🦊 KITSUNE FRUIT 🦊</h1>
   <h2>⚡ Blox Fruits ⚡</h2>
   <button class="start-btn" id="play-btn" onclick="showPlayerSelect()">🎮 JUGAR 🎮</button>
+  <button class="start-btn" id="battle-btn" onclick="showBattleSelect()" style="margin-top:14px;background:linear-gradient(135deg,#ff3300,#ff8800);border-color:#ffcc00;">⚔️ PELEAR (2P) ⚔️</button>
   <div id="player-select" style="display:none;flex-direction:column;align-items:center;gap:10px;">
     <div style="font-size:24px;color:#fff;text-shadow:0 0 10px #00e5ff;">¿Cuántos jugadores?</div>
     <button class="start-btn" onclick="startGame(1)">👤 1 Jugador</button>
@@ -260,6 +286,16 @@
 <!-- Cuenta atras tras comer del inventario en plena pelea -->
 <div id="eat-countdown"></div>
 
+<!-- Seleccion de frutas para el modo batalla -->
+<div id="battle-select">
+  <div class="battle-card">
+    <div class="battle-title">⚔️ Modo Batalla ⚔️</div>
+    <div id="battle-turn" class="battle-turn">Jugador 1 (WASD): elige tu fruta</div>
+    <div id="battle-fruits"></div>
+    <button class="inv-close" onclick="cancelBattle()">✖ Cancelar</button>
+  </div>
+</div>
+
 <canvas id="game"></canvas>
 
 <script>
@@ -304,6 +340,11 @@ let fruitSpawnTimer = 0;
 let difficultyTimer = 0;
 let enemySpeed = 0.5;
 let bgHue = 260;
+
+// ===== MODO BATALLA (PvP) =====
+let battleMode = false;    // pelea 1v1 sin NPCs
+let battlePicks = [];      // frutas elegidas por cada jugador
+const BATTLE_HP = 100;     // vida en batalla
 
 // ===== INVENTARIO DE FRUTAS =====
 let inventory = [];        // frutas guardadas
@@ -475,7 +516,7 @@ document.addEventListener('mousemove', (e) => {
 
 // Disparo con click = jugador 1 (apunta al click)
 canvas.addEventListener('click', (e) => {
-  if (!gameStarted || travel.active || inventoryOpen || eatCountdown > 0 || fruitOffer) return;
+  if (!gameStarted || travel.active || inventoryOpen || eatCountdown > 0 || fruitOffer || battleMode) return;
   const p = players[0];
   if (!p || !p.alive) return;
   shootFireball(p, e.clientX, e.clientY);
@@ -508,7 +549,12 @@ function shootFireball(p, aimX, aimY) {
 
   // Auto-aim: enemigo mas cercano; si no hay, usa el click o la direccion encarada
   let targetX, targetY;
-  if (enemies.length > 0) {
+  if (battleMode) {
+    // En batalla apunta al otro jugador vivo
+    const foe = players.find(pl => pl !== p && pl.alive);
+    if (foe) { targetX = foe.x; targetY = foe.y; }
+    else { targetX = p.x + p.facing * 200; targetY = p.y; }
+  } else if (enemies.length > 0) {
     let nearest = null, nearestDist = Infinity;
     enemies.forEach(e => {
       const dx = e.x - p.x, dy = e.y - p.y;
@@ -2858,9 +2904,10 @@ function victory() {
   ts.style.display = 'flex';
   ts.querySelector('h2').textContent = `🏆 GANASTE! Venciste a los ${BOSSES.length} jefes - Puntos: ${score} 🏆`;
   const playBtn = document.getElementById('play-btn');
-  playBtn.textContent = '🔄 JUGAR DE NUEVO 🔄'; playBtn.style.display = '';
-  document.getElementById('instructions').style.display = '';
-  document.getElementById('player-select').style.display = 'none';
+  playBtn.textContent = '🔄 JUGAR DE NUEVO 🔄';
+  document.getElementById('ui').style.display = '';
+  battleMode = false;
+  resetTitle();
 }
 
 function drawBossShots() {
@@ -5533,6 +5580,27 @@ function drawBackground() {
 }
 
 function checkCollisions() {
+  // ===== MODO BATALLA: proyectiles danan al otro jugador =====
+  if (battleMode) {
+    for (let fi = fireballs.length - 1; fi >= 0; fi--) {
+      const fb = fireballs[fi]; if (!fb) continue;
+      for (const p of players) {
+        if (!p.alive || p.superActive) continue;
+        if (fb.owner === p.id) continue; // tu propia fruta no te pega
+        const dx = fb.x - p.x, dy = fb.y - p.y;
+        if (Math.sqrt(dx * dx + dy * dy) < p.size + fb.size) {
+          p.health -= battleDamage(fb.fruit);
+          createExplosion(fb.x, fb.y, 55, 8); screenShake = 8;
+          const owner = players[fb.owner]; if (owner) owner.power = Math.min(100, owner.power + 6);
+          if (!fb.piercing) fireballs.splice(fi, 1);
+          if (p.health <= 0) { p.health = 0; p.alive = false; createExplosion(p.x, p.y, 0, 40); battleWin(1 - p.id); }
+          break;
+        }
+      }
+    }
+    return; // en batalla no hay colisiones de NPC ni jefe
+  }
+
   // Fireballs vs enemies
   for (let fi = fireballs.length - 1; fi >= 0; fi--) {
     const fb = fireballs[fi];
@@ -5757,18 +5825,19 @@ function updateUI() {
 
 function gameOver() {
   gameStarted = false;
+  battleMode = false;
+  document.getElementById('ui').style.display = '';
   const ts = document.getElementById('title-screen');
   ts.style.display = 'flex';
   ts.querySelector('h2').textContent = `💀 GAME OVER - Puntos: ${score} 💀`;
   const playBtn = document.getElementById('play-btn');
   playBtn.textContent = '🔄 JUGAR DE NUEVO 🔄';
-  playBtn.style.display = '';
-  document.getElementById('instructions').style.display = '';
-  document.getElementById('player-select').style.display = 'none';
+  resetTitle();
 }
 
 function showPlayerSelect() {
   document.getElementById('play-btn').style.display = 'none';
+  document.getElementById('battle-btn').style.display = 'none';
   document.getElementById('instructions').style.display = 'none';
   document.getElementById('player-select').style.display = 'flex';
 }
@@ -5799,6 +5868,8 @@ function updatePlayers() {
       if (keys.has(c.shoot) && p.shootCD <= 0) { shootFireball(p); p.shootCD = 12; }
     }
     if (p.shootCD > 0) p.shootCD--;
+    // En batalla el super se carga con el tiempo (no hay enemigos que matar)
+    if (battleMode && !p.superActive && p.power < 100) p.power = Math.min(100, p.power + 0.28);
     if (p.meleeComboTimer > 0) { p.meleeComboTimer--; if (p.meleeComboTimer === 0) p.meleeCombo = 0; }
     // Limites del area
     p.x = Math.max(40, Math.min(canvas.width - 40, p.x));
@@ -5819,8 +5890,8 @@ function update() {
 
   updatePlayers();
 
-  // Spawn enemies (pausado durante la pelea de jefe; sus minions los invoca el jefe)
-  if (!boss) {
+  // Spawn enemies (pausado durante la pelea de jefe; sus minions los invoca el jefe; nunca en batalla)
+  if (!boss && !battleMode) {
     spawnTimer++;
     const spawnRate = Math.max(25, 150 - level * 12);
     if (spawnTimer >= spawnRate) {
@@ -5988,6 +6059,9 @@ function draw() {
   // Barra de vida del jefe
   if (boss) drawBossUI();
 
+  // HUD de batalla PvP
+  if (battleMode) drawBattleUI();
+
   // Draw cursor (solo util para el jugador 1 con mouse)
   if (numPlayers === 1) drawCursor();
 
@@ -6002,6 +6076,117 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
+// ===== MODO BATALLA (PvP) =====
+function allFruits() { return [kitsuneDefault, ...bloxFruits]; }
+
+function fruitCardMini(f) {
+  const col = tierColors[f.tier] || '#00e5ff';
+  const tier = f.tier ? `<div class="bf-tier" style="color:${col}">${tierLabel(f.tier)}</div>` : '<div class="bf-tier" style="color:#9b4dff">★</div>';
+  return `<div class="bf-emoji">${f.emoji}</div><div class="bf-name">${f.name}</div>${tier}`;
+}
+
+function showBattleSelect() {
+  battlePicks = [];
+  document.getElementById('play-btn').style.display = 'none';
+  document.getElementById('battle-btn').style.display = 'none';
+  document.getElementById('instructions').style.display = 'none';
+  document.getElementById('player-select').style.display = 'none';
+  const grid = document.getElementById('battle-fruits');
+  grid.innerHTML = allFruits().map((f, i) => `<div class="bf-item" onclick="pickBattleFruit(${i})">${fruitCardMini(f)}</div>`).join('');
+  document.getElementById('battle-turn').textContent = '🟦 Jugador 1 (WASD): elige tu fruta';
+  document.getElementById('battle-select').style.display = 'flex';
+}
+
+function pickBattleFruit(i) {
+  const f = allFruits()[i];
+  battlePicks.push(f);
+  if (battlePicks.length === 1) {
+    document.getElementById('battle-turn').innerHTML = `🟥 Jugador 2 (Flechas): elige tu fruta  ·  <span style="color:#3bd1ff">P1 = ${f.emoji} ${f.name}</span>`;
+  } else {
+    startBattle(battlePicks[0], battlePicks[1]);
+  }
+}
+
+function cancelBattle() {
+  document.getElementById('battle-select').style.display = 'none';
+  resetTitle();
+}
+
+function resetTitle() {
+  document.getElementById('play-btn').style.display = '';
+  document.getElementById('battle-btn').style.display = '';
+  document.getElementById('instructions').style.display = '';
+  document.getElementById('player-select').style.display = 'none';
+  document.getElementById('battle-select').style.display = 'none';
+}
+
+function startBattle(f1, f2) {
+  document.getElementById('battle-select').style.display = 'none';
+  document.getElementById('title-screen').style.display = 'none';
+  document.getElementById('ui').style.display = 'none';
+  document.getElementById('inv-btn').style.display = 'none';
+  gameStarted = true;
+  battleMode = true;
+  numPlayers = 2;
+  score = 0; kills = 0; combo = 1; level = 1; island = 1;
+  travel.active = false; boss = null; bossShots = [];
+  enemies = []; fireballs = []; slashes = []; fruits = []; particles = [];
+  inventory = []; inventoryOpen = false; eatCountdown = 0; fruitOffer = null;
+  bgHue = 260;
+  players = [
+    makePlayer(0, f1, canvas.width * 0.26),
+    makePlayer(1, f2, canvas.width * 0.74),
+  ];
+  players.forEach(p => { p.health = BATTLE_HP; p.power = 0; p.y = canvas.height / 2; });
+  bindPlayer(players[0]);
+}
+
+// Dano de un impacto en batalla (equilibrado: no mata de un golpe)
+function battleDamage(fruit) { return 4 + (fruit && fruit.damage ? fruit.damage : 1); }
+
+function battleWin(winnerId) {
+  const w = players[winnerId];
+  gameStarted = false;
+  battleMode = false;
+  document.getElementById('ui').style.display = '';
+  const ts = document.getElementById('title-screen');
+  ts.style.display = 'flex';
+  const name = w.fruit === kitsuneDefault ? 'Kitsune' : w.fruit.name;
+  ts.querySelector('h2').textContent = `🏆 ¡Ganó Jugador ${winnerId + 1} con ${w.fruit.emoji} ${name}! 🏆`;
+  const playBtn = document.getElementById('play-btn');
+  playBtn.textContent = '🔄 JUGAR DE NUEVO 🔄';
+  resetTitle();
+}
+
+function drawBattleUI() {
+  players.forEach((p, i) => {
+    const left = i === 0;
+    const bw = Math.min(300, canvas.width * 0.4), x = left ? 24 : canvas.width - 24 - bw, y = 24;
+    const name = p.fruit === kitsuneDefault ? 'Kitsune' : p.fruit.name;
+    ctx.textAlign = left ? 'left' : 'right';
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 20px Arial'; ctx.shadowColor = p.fruit.glow || '#00e5ff'; ctx.shadowBlur = 10;
+    ctx.fillText(`${left ? '🟦 P1' : '🟥 P2'} · ${p.fruit.emoji} ${name} ${p.alive ? '' : '💀'}`, left ? x : x + bw, y + 6);
+    ctx.shadowBlur = 0;
+    // barra de vida
+    ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(x - 2, y + 12, bw + 4, 20);
+    ctx.fillStyle = '#330008'; ctx.fillRect(x, y + 14, bw, 16);
+    const hpFrac = Math.max(0, p.health / BATTLE_HP);
+    ctx.fillStyle = left ? '#3bd1ff' : '#ff5a5a';
+    ctx.fillRect(left ? x : x + bw * (1 - hpFrac), y + 14, bw * hpFrac, 16);
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.strokeRect(x, y + 14, bw, 16);
+    // barra de super
+    ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(x, y + 33, bw, 7);
+    const pf = Math.min(1, p.power / 100);
+    ctx.fillStyle = p.power >= 100 ? '#ffcc00' : '#7b2fff';
+    ctx.fillRect(left ? x : x + bw * (1 - pf), y + 33, bw * pf, 7);
+  });
+  ctx.textAlign = 'left';
+  // recordatorio de controles
+  ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = '14px Arial'; ctx.textAlign = 'center';
+  ctx.fillText('P1: WASD mover · Q disparar · E súper      P2: Flechas mover · Espacio disparar · M súper', canvas.width / 2, canvas.height - 24);
+  ctx.textAlign = 'left';
+}
+
 // Frutas iniciales segun el numero de jugadores
 const START_FRUITS = {
   1: ['Kitsune'],
@@ -6012,6 +6197,8 @@ const START_FRUITS = {
 function startGame(n) {
   numPlayers = n || 1;
   document.getElementById('title-screen').style.display = 'none';
+  document.getElementById('ui').style.display = '';
+  battleMode = false;
   gameStarted = true;
   score = 0;
   kills = 0;
