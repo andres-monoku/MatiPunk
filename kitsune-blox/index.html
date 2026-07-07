@@ -233,6 +233,7 @@
   <h2>⚡ Blox Fruits ⚡</h2>
   <button class="start-btn" id="play-btn" onclick="showPlayerSelect()">🎮 JUGAR 🎮</button>
   <button class="start-btn" id="battle-btn" onclick="showBattleSelect()" style="margin-top:14px;background:linear-gradient(135deg,#ff3300,#ff8800);border-color:#ffcc00;">⚔️ PELEAR (2P) ⚔️</button>
+  <button class="start-btn" id="rush-btn" onclick="showBossRushSelect()" style="margin-top:14px;background:linear-gradient(135deg,#7b2fff,#cc0033);border-color:#ff3b3b;">☠️ JEFE RUSH ☠️</button>
   <div id="player-select" style="display:none;flex-direction:column;align-items:center;gap:10px;">
     <div style="font-size:24px;color:#fff;text-shadow:0 0 10px #00e5ff;">¿Cuántos jugadores?</div>
     <button class="start-btn" onclick="startGame(1)">👤 1 Jugador</button>
@@ -345,6 +346,10 @@ let bgHue = 260;
 let battleMode = false;    // pelea 1v1 sin NPCs
 let battlePicks = [];      // frutas elegidas por cada jugador
 const BATTLE_HP = 100;     // vida en batalla
+let selectMode = 'battle'; // 'battle' | 'rush' segun el selector de frutas abierto
+
+// ===== MODO JEFE RUSH =====
+let bossRush = false;      // pelear contra todos los jefes seguidos
 
 // ===== INVENTARIO DE FRUTAS =====
 let inventory = [];        // frutas guardadas
@@ -2894,6 +2899,19 @@ function defeatBoss() {
   players.forEach(p => { if (p.alive) p.health = Math.min(5, p.health + 1); }); // recompensa: +vida
   boss = null; bossShots = [];
   updateUI();
+  if (bossRush) {
+    // Jefe Rush: encadena el siguiente jefe sin viaje ni enemigos
+    if (island >= BOSSES.length) { victory(); return; }
+    island++;
+    bgHue = islandTheme(island).bgHue;
+    enemies = [];
+    const lvl = document.getElementById('level-up');
+    lvl.textContent = `☠️ Jefe ${island}/${BOSSES.length} ☠️`;
+    lvl.style.color = '#ff3b3b'; lvl.style.opacity = 1;
+    setTimeout(() => { lvl.style.opacity = 0; }, 1200);
+    setTimeout(() => { if (gameStarted && bossRush) spawnBoss(); }, 1000);
+    return;
+  }
   if (island >= BOSSES.length) victory();
   else startIslandTravel();
 }
@@ -2907,6 +2925,7 @@ function victory() {
   playBtn.textContent = '🔄 JUGAR DE NUEVO 🔄';
   document.getElementById('ui').style.display = '';
   battleMode = false;
+  bossRush = false;
   resetTitle();
 }
 
@@ -5826,6 +5845,7 @@ function updateUI() {
 function gameOver() {
   gameStarted = false;
   battleMode = false;
+  bossRush = false;
   document.getElementById('ui').style.display = '';
   const ts = document.getElementById('title-screen');
   ts.style.display = 'flex';
@@ -5838,6 +5858,7 @@ function gameOver() {
 function showPlayerSelect() {
   document.getElementById('play-btn').style.display = 'none';
   document.getElementById('battle-btn').style.display = 'none';
+  document.getElementById('rush-btn').style.display = 'none';
   document.getElementById('instructions').style.display = 'none';
   document.getElementById('player-select').style.display = 'flex';
 }
@@ -5868,8 +5889,8 @@ function updatePlayers() {
       if (keys.has(c.shoot) && p.shootCD <= 0) { shootFireball(p); p.shootCD = 12; }
     }
     if (p.shootCD > 0) p.shootCD--;
-    // En batalla el super se carga con el tiempo (no hay enemigos que matar)
-    if (battleMode && !p.superActive && p.power < 100) p.power = Math.min(100, p.power + 0.28);
+    // En batalla/jefe rush el super se carga con el tiempo (hay pocos o ningun enemigo que matar)
+    if ((battleMode || bossRush) && !p.superActive && p.power < 100) p.power = Math.min(100, p.power + (battleMode ? 0.28 : 0.15));
     if (p.meleeComboTimer > 0) { p.meleeComboTimer--; if (p.meleeComboTimer === 0) p.meleeCombo = 0; }
     // Limites del area
     p.x = Math.max(40, Math.min(canvas.width - 40, p.x));
@@ -5890,8 +5911,8 @@ function update() {
 
   updatePlayers();
 
-  // Spawn enemies (pausado durante la pelea de jefe; sus minions los invoca el jefe; nunca en batalla)
-  if (!boss && !battleMode) {
+  // Spawn enemies (pausado durante la pelea de jefe; sus minions los invoca el jefe; nunca en batalla ni jefe rush)
+  if (!boss && !battleMode && !bossRush) {
     spawnTimer++;
     const spawnRate = Math.max(25, 150 - level * 12);
     if (spawnTimer >= spawnRate) {
@@ -6085,20 +6106,36 @@ function fruitCardMini(f) {
   return `<div class="bf-emoji">${f.emoji}</div><div class="bf-name">${f.name}</div>${tier}`;
 }
 
-function showBattleSelect() {
-  battlePicks = [];
+function openFruitSelector() {
   document.getElementById('play-btn').style.display = 'none';
   document.getElementById('battle-btn').style.display = 'none';
+  document.getElementById('rush-btn').style.display = 'none';
   document.getElementById('instructions').style.display = 'none';
   document.getElementById('player-select').style.display = 'none';
   const grid = document.getElementById('battle-fruits');
-  grid.innerHTML = allFruits().map((f, i) => `<div class="bf-item" onclick="pickBattleFruit(${i})">${fruitCardMini(f)}</div>`).join('');
-  document.getElementById('battle-turn').textContent = '🟦 Jugador 1 (WASD): elige tu fruta';
+  grid.innerHTML = allFruits().map((f, i) => `<div class="bf-item" onclick="pickFruitSel(${i})">${fruitCardMini(f)}</div>`).join('');
   document.getElementById('battle-select').style.display = 'flex';
 }
 
-function pickBattleFruit(i) {
+function showBattleSelect() {
+  selectMode = 'battle';
+  battlePicks = [];
+  document.querySelector('#battle-select .battle-title').textContent = '⚔️ Modo Batalla ⚔️';
+  openFruitSelector();
+  document.getElementById('battle-turn').textContent = '🟦 Jugador 1 (WASD): elige tu fruta';
+}
+
+function showBossRushSelect() {
+  selectMode = 'rush';
+  document.querySelector('#battle-select .battle-title').textContent = '☠️ Jefe Rush ☠️';
+  openFruitSelector();
+  document.getElementById('battle-turn').textContent = 'Elige tu fruta para enfrentar a los ' + BOSSES.length + ' jefes seguidos';
+}
+
+function pickFruitSel(i) {
   const f = allFruits()[i];
+  if (selectMode === 'rush') { startBossRush(f); return; }
+  // Modo batalla: dos elecciones
   battlePicks.push(f);
   if (battlePicks.length === 1) {
     document.getElementById('battle-turn').innerHTML = `🟥 Jugador 2 (Flechas): elige tu fruta  ·  <span style="color:#3bd1ff">P1 = ${f.emoji} ${f.name}</span>`;
@@ -6115,9 +6152,30 @@ function cancelBattle() {
 function resetTitle() {
   document.getElementById('play-btn').style.display = '';
   document.getElementById('battle-btn').style.display = '';
+  document.getElementById('rush-btn').style.display = '';
   document.getElementById('instructions').style.display = '';
   document.getElementById('player-select').style.display = 'none';
   document.getElementById('battle-select').style.display = 'none';
+}
+
+function startBossRush(fruit) {
+  document.getElementById('battle-select').style.display = 'none';
+  document.getElementById('title-screen').style.display = 'none';
+  document.getElementById('ui').style.display = '';
+  document.getElementById('inv-btn').style.display = 'none';
+  gameStarted = true;
+  bossRush = true; battleMode = false;
+  numPlayers = 1;
+  score = 0; kills = 0; combo = 1; level = 1; island = 1;
+  travel.active = false; boss = null; bossShots = [];
+  enemies = []; fireballs = []; slashes = []; fruits = []; particles = [];
+  inventory = []; inventoryOpen = false; eatCountdown = 0; fruitOffer = null;
+  bgHue = islandTheme(1).bgHue;
+  players = [ makePlayer(0, fruit, canvas.width / 2) ];
+  players[0].y = canvas.height / 2;
+  bindPlayer(players[0]);
+  updateUI();
+  spawnBoss();
 }
 
 function startBattle(f1, f2) {
@@ -6199,6 +6257,7 @@ function startGame(n) {
   document.getElementById('title-screen').style.display = 'none';
   document.getElementById('ui').style.display = '';
   battleMode = false;
+  bossRush = false;
   gameStarted = true;
   score = 0;
   kills = 0;
