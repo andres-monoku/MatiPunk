@@ -3863,6 +3863,78 @@ function drawBossSanjuan(b, S) {
   for (let i = -3; i <= 3; i++) { ctx.beginPath(); ctx.moveTo(i * S * 0.042 - S * 0.02, hy + S * 0.13); ctx.lineTo(i * S * 0.042, hy + S * 0.07); ctx.lineTo(i * S * 0.042 + S * 0.02, hy + S * 0.13); ctx.closePath(); ctx.fill(); }
 }
 
+function drawBossPerospero(b, S) {
+  const orange = '#e88820', orangeD = '#b8600f', skin = '#d8a878', skinSh = '#b5865a', tongue = '#e87aa0';
+  const navy = '#2a2a6a', dot = '#7ab0e0', hatR = '#c02020', hatO = '#e88020', cotton = '#f2a8d0';
+  const candyP = '#5a2a8a', bow = '#f0a8c8', blue = '#2a3ab0', pom = '#f0ecd8', heel = '#6a2a9a', teeth = '#d8b040';
+  const hy = -S * 0.78;
+
+  // Baston de caramelo diagonal
+  ctx.strokeStyle = '#f0f0ec'; ctx.lineWidth = S * 0.045; ctx.beginPath(); ctx.moveTo(-S * 0.12, -S * 0.05); ctx.lineTo(S * 0.62, S * 1.35); ctx.stroke();
+  ctx.strokeStyle = hatR; ctx.lineWidth = S * 0.045; ctx.setLineDash([S * 0.055, S * 0.055]); ctx.beginPath(); ctx.moveTo(-S * 0.12, -S * 0.05); ctx.lineTo(S * 0.62, S * 1.35); ctx.stroke(); ctx.setLineDash([]);
+
+  // Abrigo naranja largo
+  ctx.fillStyle = orange;
+  ctx.beginPath(); ctx.moveTo(-S * 0.15, -S * 0.3); ctx.lineTo(S * 0.15, -S * 0.3); ctx.quadraticCurveTo(S * 0.2, S * 0.2, S * 0.34, S * 0.72); ctx.lineTo(-S * 0.34, S * 0.72); ctx.quadraticCurveTo(-S * 0.2, S * 0.2, -S * 0.15, -S * 0.3); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = orangeD; ctx.lineWidth = 1; ctx.stroke();
+  // botones
+  ctx.fillStyle = '#b8600f'; for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.ellipse(0, -S * 0.16 + i * S * 0.14, S * 0.012, S * 0.02, 0, 0, Math.PI * 2); ctx.fill(); }
+
+  // Falda de cuadros azul/blanco + pompones
+  ctx.save(); ctx.beginPath(); ctx.moveTo(-S * 0.34, S * 0.72); ctx.lineTo(S * 0.34, S * 0.72); ctx.lineTo(S * 0.44, S * 1.12); ctx.lineTo(-S * 0.44, S * 1.12); ctx.closePath(); ctx.clip();
+  for (let r = 0; r < 3; r++) for (let c = -5; c <= 5; c++) { ctx.fillStyle = (r + c) % 2 ? blue : '#f0f0ec'; ctx.fillRect(c * S * 0.1, S * 0.72 + r * S * 0.14, S * 0.1, S * 0.14); }
+  ctx.restore();
+  ctx.fillStyle = pom; for (let i = -4; i <= 4; i++) { ctx.beginPath(); ctx.arc(i * S * 0.1, S * 1.14, S * 0.05, 0, Math.PI * 2); ctx.fill(); }
+  // tacones morados curvos
+  ctx.fillStyle = heel;
+  for (const lx of [-0.1, 0.1]) { ctx.beginPath(); ctx.moveTo(lx * S, S * 1.16); ctx.lineTo(lx * S + Math.sign(lx) * S * 0.14, S * 1.36); ctx.quadraticCurveTo(lx * S + Math.sign(lx) * S * 0.2, S * 1.4, lx * S + Math.sign(lx) * S * 0.14, S * 1.3); ctx.lineTo(lx * S + Math.sign(lx) * S * 0.04, S * 1.2); ctx.closePath(); ctx.fill(); }
+
+  // Cuello azul de lunares
+  ctx.fillStyle = navy;
+  ctx.beginPath(); ctx.moveTo(-S * 0.22, -S * 0.36); ctx.quadraticCurveTo(0, -S * 0.22, S * 0.22, -S * 0.36); ctx.lineTo(S * 0.28, -S * 0.16); ctx.quadraticCurveTo(0, -S * 0.04, -S * 0.28, -S * 0.16); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = dot; for (const d of [[-0.16, -0.22], [-0.05, -0.16], [0.1, -0.2], [0.2, -0.26], [-0.22, -0.3]]) { ctx.beginPath(); ctx.arc(d[0] * S, d[1] * S, S * 0.022, 0, Math.PI * 2); ctx.fill(); }
+
+  // Dulces decorativos (candy con lazos)
+  const candy = (x, y) => { ctx.fillStyle = candyP; ctx.beginPath(); ctx.ellipse(x, y, S * 0.05, S * 0.035, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = bow; ctx.beginPath(); ctx.moveTo(x - S * 0.05, y); ctx.lineTo(x - S * 0.1, y - S * 0.035); ctx.lineTo(x - S * 0.1, y + S * 0.035); ctx.closePath(); ctx.moveTo(x + S * 0.05, y); ctx.lineTo(x + S * 0.1, y - S * 0.035); ctx.lineTo(x + S * 0.1, y + S * 0.035); ctx.closePath(); ctx.fill(); };
+  candy(-S * 0.13, -S * 0.02); candy(-S * 0.02, S * 0.14);
+
+  // Brazos naranjas sujetando el baston
+  ctx.strokeStyle = orange; ctx.lineWidth = S * 0.1; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-S * 0.14, -S * 0.24); ctx.lineTo(S * 0.08, S * 0.05); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(S * 0.14, -S * 0.24); ctx.lineTo(S * 0.06, S * 0.02); ctx.stroke();
+  ctx.lineCap = 'butt';
+  ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(S * 0.06, S * 0.06, S * 0.05, 0, Math.PI * 2); ctx.fill();
+
+  // Algodon de azucar (pelo) a los lados
+  ctx.fillStyle = cotton;
+  for (const s of [-1, 1]) for (let k = 0; k < 5; k++) { ctx.beginPath(); ctx.arc(s * S * 0.2 + (k % 2) * s * S * 0.04, hy - S * 0.28 + k * S * 0.06, S * 0.06, 0, Math.PI * 2); ctx.fill(); }
+
+  // Cabeza + lengua + sonrisa
+  ctx.fillStyle = skin; ctx.beginPath(); ctx.ellipse(0, hy, S * 0.14, S * 0.17, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = skinSh; ctx.lineWidth = 1; ctx.stroke();
+  // lengua larga
+  ctx.fillStyle = tongue; ctx.beginPath(); ctx.moveTo(-S * 0.04, hy + S * 0.1); ctx.quadraticCurveTo(-S * 0.12, hy + S * 0.4, -S * 0.02, hy + S * 0.52); ctx.quadraticCurveTo(S * 0.06, hy + S * 0.4, S * 0.05, hy + S * 0.1); ctx.closePath(); ctx.fill();
+  // sonrisa con dientes a rayas
+  ctx.fillStyle = '#4a2414'; ctx.beginPath(); ctx.ellipse(0, hy + S * 0.06, S * 0.1, S * 0.055, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = teeth; ctx.fillRect(-S * 0.09, hy + S * 0.03, S * 0.18, S * 0.06);
+  ctx.strokeStyle = '#8a5a1a'; ctx.lineWidth = S * 0.012; for (let i = -3; i <= 3; i++) { ctx.beginPath(); ctx.moveTo(i * S * 0.03, hy + S * 0.03); ctx.lineTo(i * S * 0.03, hy + S * 0.09); ctx.stroke(); }
+  // ojos
+  ctx.fillStyle = '#2a1a10'; ctx.beginPath(); ctx.arc(-S * 0.05, hy - S * 0.04, S * 0.012, 0, Math.PI * 2); ctx.arc(S * 0.05, hy - S * 0.04, S * 0.012, 0, Math.PI * 2); ctx.fill();
+
+  // Sombrero rojo con espirales + piruletas
+  // ala
+  ctx.fillStyle = hatR; ctx.beginPath(); ctx.ellipse(0, hy - S * 0.18, S * 0.24, S * 0.06, -0.15, 0, Math.PI * 2); ctx.fill();
+  // copa
+  ctx.save(); ctx.translate(0, hy - S * 0.2); ctx.rotate(-0.12);
+  ctx.beginPath(); ctx.moveTo(-S * 0.11, 0); ctx.quadraticCurveTo(-S * 0.16, -S * 0.42, 0, -S * 0.5); ctx.quadraticCurveTo(S * 0.16, -S * 0.42, S * 0.11, 0); ctx.closePath();
+  ctx.fillStyle = hatR; ctx.fill();
+  ctx.strokeStyle = hatO; ctx.lineWidth = S * 0.03; for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.moveTo(-S * 0.14, -i * S * 0.1); ctx.lineTo(S * 0.12, -i * S * 0.1 - S * 0.06); ctx.stroke(); }
+  ctx.restore();
+  // piruletas
+  const lolliC = ['#e83a3a', '#3a9ae8', '#3ae86a', '#e8d23a', '#c03ae8'];
+  for (let k = 0; k < 6; k++) { const x = -S * 0.16 + k * S * 0.06, y = hy - S * 0.24 - (k % 2) * S * 0.05; ctx.strokeStyle = '#fff'; ctx.lineWidth = S * 0.008; ctx.beginPath(); ctx.moveTo(x, hy - S * 0.18); ctx.lineTo(x, y); ctx.stroke(); ctx.fillStyle = lolliC[k % 5]; ctx.beginPath(); ctx.arc(x, y, S * 0.025, 0, Math.PI * 2); ctx.fill(); }
+}
+
 function drawBossCracker(b, S) {
   const skin = '#e6cdb4', skinSh = '#c6a988', hair = '#8a3a9a', hairSh = '#6a2878';
   const hPink = '#e05a90', hGreen = '#8ac04a', hYell = '#e8c84a', belt = '#a81e40', ring = '#e05a90';
@@ -4390,6 +4462,7 @@ const BOSS_ART = {
   'Sanjuan Wolf': drawBossSanjuan,
   Katakuri: drawBossKatakuri,
   Cracker: drawBossCracker,
+  Perospero: drawBossPerospero,
 };
 
 function drawBossUI() {
