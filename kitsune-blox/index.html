@@ -146,6 +146,59 @@
     pointer-events: none;
     opacity: 0;
   }
+
+  /* ===== Inventario de frutas ===== */
+  #inv-btn {
+    position: fixed; top: 64px; right: 18px; z-index: 40; display: none;
+    background: linear-gradient(135deg, rgba(120,0,255,0.85), rgba(0,200,255,0.7));
+    border: 2px solid #00e5ff; border-radius: 14px; padding: 8px 16px;
+    color: #fff; font-size: 20px; font-weight: bold;
+    text-shadow: 0 0 10px #00e5ff; box-shadow: 0 0 20px rgba(0,229,255,0.4);
+    cursor: pointer; transition: transform .12s;
+  }
+  #inv-btn:hover { transform: scale(1.06); }
+
+  #inv-panel, #fruit-offer {
+    position: fixed; inset: 0; background: rgba(5,0,20,0.82);
+    display: none; align-items: center; justify-content: center;
+    z-index: 120; cursor: default;
+  }
+  .inv-card, .offer-card {
+    background: radial-gradient(ellipse at center, #1a0030, #0a0015);
+    border: 3px solid #00e5ff; border-radius: 22px; padding: 26px 34px;
+    text-align: center; box-shadow: 0 0 40px rgba(123,47,255,0.6); max-width: 90vw;
+  }
+  .inv-card h3, .offer-title {
+    color: #fff; font-size: 26px; margin-bottom: 18px; text-shadow: 0 0 16px #7b2fff;
+  }
+  #inv-list { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; max-width: 620px; }
+  .inv-item {
+    background: rgba(255,255,255,0.06); border: 2px solid #7b2fff; border-radius: 16px;
+    padding: 12px 14px; width: 140px; cursor: pointer; transition: transform .12s;
+  }
+  .inv-item:hover { transform: scale(1.06); border-color: #00e5ff; }
+  .inv-eat { margin-top: 8px; color: #ffcc00; font-weight: bold; font-size: 15px; }
+  .fruit-emoji { font-size: 40px; }
+  .fruit-name { color:#fff; font-size:18px; font-weight:bold; margin-top:4px; }
+  .fruit-tier { display:inline-block; margin-top:6px; padding:1px 10px; border:2px solid; border-radius:10px; font-weight:bold; font-size:14px; }
+  .fruit-desc { color:#bbb; font-size:14px; margin-top:6px; }
+  #offer-fruit { margin-bottom: 20px; }
+  .offer-btns { display:flex; gap:18px; justify-content:center; flex-wrap:wrap; }
+  .offer-eat, .offer-save, .inv-close {
+    font-size: 20px; font-weight: bold; color:#fff; border-radius: 40px;
+    padding: 12px 28px; cursor: pointer; border: 3px solid #00e5ff; letter-spacing:1px;
+  }
+  .offer-eat { background: linear-gradient(135deg,#ff8800,#ff3300); border-color:#ffcc00; }
+  .offer-save { background: linear-gradient(135deg,#7b2fff,#00b4d8); }
+  .inv-close { background: linear-gradient(135deg,#555,#222); margin-top:22px; }
+  .offer-eat:hover, .offer-save:hover, .inv-close:hover { filter: brightness(1.15); }
+
+  #eat-countdown {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    font-size: 90px; font-weight: 900; color:#00e5ff;
+    text-shadow: 0 0 40px #7b2fff, 0 0 80px #00e5ff;
+    z-index: 60; display: none; pointer-events: none;
+  }
 </style>
 </head>
 <body>
@@ -179,6 +232,33 @@
 <div id="combo-display"></div>
 <div id="powerup-msg"></div>
 <div id="level-up"></div>
+
+<!-- Boton de inventario (esquina superior derecha durante la pelea) -->
+<div id="inv-btn" onclick="openInventory()">🎒 x<span id="inv-count">0</span></div>
+
+<!-- Panel de inventario (pausa el juego) -->
+<div id="inv-panel">
+  <div class="inv-card">
+    <h3>🎒 Inventario de Frutas</h3>
+    <div id="inv-list"></div>
+    <button class="inv-close" onclick="closeInventory()">✖ Cerrar</button>
+  </div>
+</div>
+
+<!-- Oferta de fruta al viajar entre islas -->
+<div id="fruit-offer">
+  <div class="offer-card">
+    <div class="offer-title">🍈 ¡Encontraste una fruta!</div>
+    <div id="offer-fruit"></div>
+    <div class="offer-btns">
+      <button class="offer-eat" onclick="chooseOffer('eat')">🍽️ Comer ahora</button>
+      <button class="offer-save" onclick="chooseOffer('save')">🎒 Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cuenta atras tras comer del inventario en plena pelea -->
+<div id="eat-countdown"></div>
 
 <canvas id="game"></canvas>
 
@@ -224,6 +304,12 @@ let fruitSpawnTimer = 0;
 let difficultyTimer = 0;
 let enemySpeed = 0.5;
 let bgHue = 260;
+
+// ===== INVENTARIO DE FRUTAS =====
+let inventory = [];        // frutas guardadas
+let inventoryOpen = false; // panel abierto => juego en pausa
+let eatCountdown = 0;      // frames restantes de pausa tras comer del inventario (3s)
+let fruitOffer = null;     // fruta ofrecida durante el viaje (comer/guardar)
 
 // ===== ISLAS / DIFICULTAD =====
 let island = 1;
@@ -389,7 +475,7 @@ document.addEventListener('mousemove', (e) => {
 
 // Disparo con click = jugador 1 (apunta al click)
 canvas.addEventListener('click', (e) => {
-  if (!gameStarted || travel.active) return;
+  if (!gameStarted || travel.active || inventoryOpen || eatCountdown > 0 || fruitOffer) return;
   const p = players[0];
   if (!p || !p.alive) return;
   shootFireball(p, e.clientX, e.clientY);
@@ -398,7 +484,7 @@ canvas.addEventListener('click', (e) => {
 // Teclado: movimiento (mantener) + super (al presionar). El disparo se procesa en update().
 document.addEventListener('keydown', (e) => {
   keys.add(e.code);
-  if (!gameStarted || travel.active) return;
+  if (!gameStarted || travel.active || inventoryOpen || eatCountdown > 0 || fruitOffer) return;
   if (e.code === 'Space') e.preventDefault(); // evita scroll
   // 1 jugador clasico: Espacio = super del jugador 1
   if (numPlayers === 1 && e.code === 'Space') {
@@ -2610,6 +2696,90 @@ function drawCursor() {
 }
 
 // ===== VIAJE ENTRE ISLAS =====
+// ===== INVENTARIO / OFERTA DE FRUTAS =====
+function mainPlayer() { return players.find(p => p.alive) || players[0]; }
+
+function fruitCardHTML(f) {
+  const col = tierColors[f.tier] || '#00e5ff';
+  return `<div class="fruit-emoji">${f.emoji}</div>
+    <div class="fruit-name">${f.name}</div>
+    <div class="fruit-tier" style="color:${col};border-color:${col}">${tierLabel(f.tier)}</div>
+    <div class="fruit-desc">${f.desc}</div>`;
+}
+
+function showFruitOffer() {
+  document.getElementById('offer-fruit').innerHTML = fruitCardHTML(fruitOffer);
+  document.getElementById('fruit-offer').style.display = 'flex';
+}
+
+// Comer ahora (aparece en la proxima isla con esa fruta) o guardar para despues
+function chooseOffer(action) {
+  if (!fruitOffer) return;
+  if (action === 'eat') {
+    const p = mainPlayer();
+    if (p) { p.fruit = fruitOffer; p.power = Math.min(100, p.power + 12); }
+    showPowerup(`🍽️ Comiste ${fruitOffer.emoji} ${fruitOffer.name}! ${fruitOffer.desc}`);
+  } else {
+    inventory.push(fruitOffer);
+  }
+  fruitOffer = null;
+  document.getElementById('fruit-offer').style.display = 'none';
+  updateInvBtn();
+  updateUI();
+}
+
+function updateInvBtn() {
+  const btn = document.getElementById('inv-btn');
+  if (!btn) return;
+  document.getElementById('inv-count').textContent = inventory.length;
+  const show = gameStarted && !travel.active && !inventoryOpen && !fruitOffer && inventory.length > 0;
+  btn.style.display = show ? 'block' : 'none';
+}
+
+function openInventory() {
+  if (!gameStarted || travel.active || fruitOffer || inventory.length === 0) return;
+  inventoryOpen = true; // pausa el juego mientras busca una fruta
+  renderInventory();
+  document.getElementById('inv-panel').style.display = 'flex';
+  updateInvBtn();
+}
+
+function closeInventory() {
+  inventoryOpen = false;
+  document.getElementById('inv-panel').style.display = 'none';
+  updateInvBtn();
+}
+
+function renderInventory() {
+  const list = document.getElementById('inv-list');
+  if (inventory.length === 0) { list.innerHTML = '<div style="color:#aaa;font-size:18px">Vacío</div>'; return; }
+  list.innerHTML = inventory.map((f, i) =>
+    `<div class="inv-item" onclick="eatFromInventory(${i})">${fruitCardHTML(f)}<div class="inv-eat">🍽️ Comer</div></div>`
+  ).join('');
+}
+
+// Comer del inventario en plena pelea: 3s de pausa y luego se reanuda con la fruta nueva
+function eatFromInventory(idx) {
+  const f = inventory[idx];
+  if (!f) return;
+  const p = mainPlayer();
+  if (p) { p.fruit = f; p.power = Math.min(100, p.power + 12); }
+  inventory.splice(idx, 1);
+  inventoryOpen = false;
+  document.getElementById('inv-panel').style.display = 'none';
+  showPowerup(`🍽️ Comiste ${f.emoji} ${f.name}! ${f.desc}`);
+  eatCountdown = 180; // 3 segundos antes de despausar
+  updateInvBtn();
+  updateUI();
+}
+
+function syncCountdown() {
+  const el = document.getElementById('eat-countdown');
+  if (!el) return;
+  if (eatCountdown > 0) { el.style.display = 'block'; el.textContent = '▶️ ' + Math.ceil(eatCountdown / 60); }
+  else el.style.display = 'none';
+}
+
 function startIslandTravel() {
   travel.active = true;
   travel.timer = travel.duration;
@@ -2618,6 +2788,10 @@ function startIslandTravel() {
   fireballs = [];
   slashes = [];
   screenShake = 0;
+  // Ofrece una fruta aleatoria durante el viaje
+  fruitOffer = pickWeightedFruit();
+  showFruitOffer();
+  updateInvBtn();
 }
 
 // ===== JEFES =====
@@ -5216,6 +5390,7 @@ function drawBossUI() {
 }
 
 function updateTravel() {
+  if (fruitOffer) return; // espera a que el jugador elija comer o guardar
   travel.timer--;
   if (travel.timer <= 0) {
     travel.active = false;
@@ -5639,6 +5814,8 @@ function updatePlayers() {
 function update() {
   if (!gameStarted) return;
   if (travel.active) { updateTravel(); return; }
+  if (inventoryOpen) return; // pausado mientras el inventario esta abierto
+  if (eatCountdown > 0) { eatCountdown--; return; } // pausa de 3s tras comer del inventario
 
   updatePlayers();
 
@@ -5825,6 +6002,8 @@ function draw() {
 function gameLoop() {
   update();
   draw();
+  updateInvBtn();
+  syncCountdown();
   requestAnimationFrame(gameLoop);
 }
 
@@ -5856,6 +6035,15 @@ function startGame(n) {
   particles = [];
   spawnTimer = 0;
   fruitSpawnTimer = 0;
+
+  // Reinicia inventario/oferta
+  inventory = [];
+  inventoryOpen = false;
+  eatCountdown = 0;
+  fruitOffer = null;
+  document.getElementById('fruit-offer').style.display = 'none';
+  document.getElementById('inv-panel').style.display = 'none';
+  document.getElementById('inv-btn').style.display = 'none';
 
   const starts = START_FRUITS[numPlayers] || START_FRUITS[1];
   const gap = canvas.width / (numPlayers + 1);
