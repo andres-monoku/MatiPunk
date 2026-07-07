@@ -231,6 +231,8 @@
 <div id="title-screen">
   <h1>🦊 KITSUNE FRUIT 🦊</h1>
   <h2>⚡ Blox Fruits ⚡</h2>
+  <div id="save-info" style="color:#00e5ff;font-size:18px;margin-bottom:14px;text-shadow:0 0 10px #00e5ff;"></div>
+  <button class="start-btn" id="continue-btn" onclick="continueGame()" style="display:none;margin-bottom:14px;background:linear-gradient(135deg,#2ec16b,#00b4d8);border-color:#3bffa0;">▶️ CONTINUAR ▶️</button>
   <button class="start-btn" id="play-btn" onclick="showPlayerSelect()">🎮 JUGAR 🎮</button>
   <button class="start-btn" id="battle-btn" onclick="showBattleSelect()" style="margin-top:14px;background:linear-gradient(135deg,#ff3300,#ff8800);border-color:#ffcc00;">⚔️ PELEAR (2P) ⚔️</button>
   <button class="start-btn" id="rush-btn" onclick="showBossRushSelect()" style="margin-top:14px;background:linear-gradient(135deg,#7b2fff,#cc0033);border-color:#ff3b3b;">☠️ JEFE RUSH ☠️</button>
@@ -2916,6 +2918,7 @@ function defeatBoss() {
 
 function victory() {
   gameStarted = false;
+  if (!battleMode && !bossRush) saveBest();
   const ts = document.getElementById('title-screen');
   ts.style.display = 'flex';
   ts.querySelector('h2').textContent = `🏆 GANASTE! Venciste a los ${BOSSES.length} jefes - Puntos: ${score} 🏆`;
@@ -5459,6 +5462,7 @@ function updateTravel() {
   if (travel.timer <= 0) {
     travel.active = false;
     island = travel.to;
+    saveProgress(); // guarda progreso al llegar a una isla nueva
     const th = islandTheme(island);
     bgHue = th.bgHue;
     const lvl = document.getElementById('level-up');
@@ -5842,6 +5846,7 @@ function updateUI() {
 
 function gameOver() {
   gameStarted = false;
+  if (!battleMode) saveBest();
   battleMode = false;
   bossRush = false;
   document.getElementById('ui').style.display = '';
@@ -5857,6 +5862,7 @@ function showPlayerSelect() {
   document.getElementById('play-btn').style.display = 'none';
   document.getElementById('battle-btn').style.display = 'none';
   document.getElementById('rush-btn').style.display = 'none';
+  document.getElementById('continue-btn').style.display = 'none';
   document.getElementById('instructions').style.display = 'none';
   document.getElementById('player-select').style.display = 'flex';
 }
@@ -6108,6 +6114,7 @@ function openFruitSelector() {
   document.getElementById('play-btn').style.display = 'none';
   document.getElementById('battle-btn').style.display = 'none';
   document.getElementById('rush-btn').style.display = 'none';
+  document.getElementById('continue-btn').style.display = 'none';
   document.getElementById('instructions').style.display = 'none';
   document.getElementById('player-select').style.display = 'none';
   const grid = document.getElementById('battle-fruits');
@@ -6154,6 +6161,7 @@ function resetTitle() {
   document.getElementById('instructions').style.display = '';
   document.getElementById('player-select').style.display = 'none';
   document.getElementById('battle-select').style.display = 'none';
+  refreshTitleStats(); // muestra mejor puntuacion y boton de continuar
 }
 
 function startBossRush(fruit) {
@@ -6243,6 +6251,55 @@ function drawBattleUI() {
   ctx.textAlign = 'left';
 }
 
+// ===== GUARDAR PROGRESO (localStorage) =====
+const SAVE_KEY = 'kitsuneFruitSave';
+function loadSave() { try { return JSON.parse(localStorage.getItem(SAVE_KEY)) || {}; } catch (e) { return {}; } }
+function writeSave(obj) { try { localStorage.setItem(SAVE_KEY, JSON.stringify(obj)); } catch (e) {} }
+
+// Guarda la isla mas lejana y la fruta actual (solo campana normal)
+function saveProgress() {
+  const s = loadSave();
+  s.island = Math.max(s.island || 1, island);
+  const f = players[0] && players[0].fruit;
+  s.fruit = (f && f !== kitsuneDefault) ? f.name : (s.fruit || 'Kitsune');
+  writeSave(s);
+}
+
+// Guarda la mejor puntuacion
+function saveBest() {
+  const s = loadSave();
+  s.best = Math.max(s.best || 0, score);
+  writeSave(s);
+  refreshTitleStats();
+}
+
+function refreshTitleStats() {
+  const s = loadSave();
+  const info = document.getElementById('save-info');
+  const cont = document.getElementById('continue-btn');
+  if (info) info.textContent = `🏅 Mejor puntuación: ${s.best || 0}` + (s.island && s.island > 1 ? `  ·  📍 Isla ${s.island}` : '');
+  if (cont) cont.style.display = (s.island && s.island > 1) ? '' : 'none';
+}
+
+// Continua la campana desde la isla guardada
+function continueGame() {
+  const s = loadSave();
+  const isl = Math.max(1, s.island || 1);
+  startGame(1);
+  island = isl;
+  level = (isl - 1) * 10 + 1;
+  const nt = Math.min(9, 3 + Math.floor(level / 2));
+  players.forEach(pp => pp.numTails = nt);
+  enemySpeed = 0.5 + (level - 1) * 0.15;
+  bgHue = islandTheme(island).bgHue;
+  if (s.fruit) players[0].fruit = getFruitByName(s.fruit);
+  const lvl = document.getElementById('level-up');
+  lvl.textContent = `📍 ${islandTheme(island).name} (Isla ${island})`;
+  lvl.style.color = '#3bffa0'; lvl.style.opacity = 1;
+  setTimeout(() => { lvl.style.opacity = 0; }, 2200);
+  updateUI();
+}
+
 // Frutas iniciales segun el numero de jugadores
 const START_FRUITS = {
   1: ['Kitsune'],
@@ -6293,6 +6350,9 @@ function startGame(n) {
   bindPlayer(players[0]);
   updateUI();
 }
+
+// Muestra progreso guardado en el titulo al cargar
+refreshTitleStats();
 
 // Start render loop
 gameLoop();
