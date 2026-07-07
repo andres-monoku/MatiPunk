@@ -3940,6 +3940,89 @@ function drawBossPerospero(b, S) {
   for (let k = 0; k < 6; k++) { const x = -S * 0.16 + k * S * 0.06, y = hy - S * 0.24 - (k % 2) * S * 0.05; ctx.strokeStyle = '#fff'; ctx.lineWidth = S * 0.008; ctx.beginPath(); ctx.moveTo(x, hy - S * 0.18); ctx.lineTo(x, y); ctx.stroke(); ctx.fillStyle = lolliC[k % 5]; ctx.beginPath(); ctx.arc(x, y, S * 0.025, 0, Math.PI * 2); ctx.fill(); }
 }
 
+function drawBossQueen(b, S) {
+  const skin = '#f0cba0', skinSh = '#d0a878', skinD = '#b88a58', black = '#1a1a1a', white = '#f0f0ea';
+  const gold = '#e8c440', goldSh = '#a88410', hair = '#e8c440', metal = '#b0b4bc', metalSh = '#888c94', glove = '#d8641a';
+  const shoe = '#5a3418', shade = '#3a6ad0', cigar = '#8a5a2a', sword = '#c8c8d0', tassel = '#9a2040';
+  const hy = -S * 0.56;
+
+  // Piernas: overol de rayas + piel
+  ctx.fillStyle = skin;
+  for (const lx of [-1, 1]) { ctx.beginPath(); ctx.ellipse(lx * S * 0.2, S * 1.0, S * 0.12, S * 0.16, 0, 0, Math.PI * 2); ctx.fill(); }
+  // zapatos marrones
+  ctx.fillStyle = shoe; for (const lx of [-1, 1]) { ctx.beginPath(); ctx.ellipse(lx * S * 0.2, S * 1.16, S * 0.09, S * 0.05, 0, 0, Math.PI * 2); ctx.fill(); }
+
+  // Cuerpo enorme y redondo (piel desnuda)
+  ctx.fillStyle = skin;
+  ctx.beginPath(); ctx.ellipse(0, S * 0.35, S * 0.62, S * 0.62, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0, hy + S * 0.18, S * 0.34, S * 0.3, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = skinSh; ctx.lineWidth = 1; ctx.stroke();
+  // pecho / cicatriz cosida
+  ctx.strokeStyle = skinD; ctx.lineWidth = S * 0.01; ctx.beginPath(); ctx.moveTo(0, hy + S * 0.12); ctx.lineTo(0, hy + S * 0.4); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-S * 0.14, hy + S * 0.16); ctx.quadraticCurveTo(0, hy + S * 0.24, S * 0.14, hy + S * 0.16); ctx.stroke();
+  // costura en zigzag
+  ctx.strokeStyle = skinD; ctx.lineWidth = S * 0.008; ctx.beginPath(); ctx.moveTo(-S * 0.04, hy + S * 0.26); ctx.lineTo(-S * 0.05, hy + S * 0.42); ctx.stroke();
+  for (let i = 0; i < 5; i++) { const y = hy + S * 0.28 + i * S * 0.03; ctx.beginPath(); ctx.moveTo(-S * 0.08, y); ctx.lineTo(-S * 0.01, y); ctx.stroke(); }
+  // tatuaje en brazo izquierdo
+  ctx.fillStyle = black; ctx.font = `${S * 0.05}px sans-serif`; ctx.save(); ctx.translate(-S * 0.44, hy + S * 0.24); ctx.rotate(0.2); ctx.fillText('QUEEN', -S * 0.08, 0); ctx.restore();
+
+  // Overol de rayas verticales blancas y negras (barriga)
+  ctx.save();
+  ctx.beginPath(); ctx.ellipse(0, S * 0.4, S * 0.44, S * 0.5, 0, 0, Math.PI * 2); ctx.clip();
+  for (let i = -6; i <= 6; i++) { ctx.fillStyle = i % 2 ? white : black; ctx.fillRect(i * S * 0.075, -S * 0.2, S * 0.075, S * 1.2); }
+  ctx.restore();
+  ctx.strokeStyle = '#8a8a8a'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(0, S * 0.4, S * 0.44, S * 0.5, 0, 0, Math.PI * 2); ctx.stroke();
+
+  // Tirantes negros con hebillas 8 doradas
+  ctx.strokeStyle = black; ctx.lineWidth = S * 0.04;
+  ctx.beginPath(); ctx.moveTo(-S * 0.16, hy + S * 0.34); ctx.lineTo(-S * 0.26, S * 0.0); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(S * 0.16, hy + S * 0.34); ctx.lineTo(S * 0.26, S * 0.0); ctx.stroke();
+  ctx.fillStyle = gold; for (const lx of [-0.26, 0.26]) { ctx.beginPath(); ctx.arc(lx * S, S * 0.02, S * 0.028, 0, Math.PI * 2); ctx.arc(lx * S, S * 0.06, S * 0.028, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(lx * S, S * 0.02, S * 0.012, 0, Math.PI * 2); ctx.arc(lx * S, S * 0.06, S * 0.012, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = gold; }
+
+  // Brazo izquierdo (normal) con espada
+  ctx.fillStyle = skin; ctx.beginPath(); ctx.ellipse(-S * 0.5, hy + S * 0.36, S * 0.13, S * 0.28, 0.1, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = skinSh; ctx.lineWidth = 1; ctx.stroke();
+  ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(-S * 0.52, S * 0.66, S * 0.09, 0, Math.PI * 2); ctx.fill();
+  // espada fina con borla
+  ctx.strokeStyle = sword; ctx.lineWidth = S * 0.012; ctx.beginPath(); ctx.moveTo(-S * 0.52, S * 0.3); ctx.lineTo(-S * 0.52, S * 0.66); ctx.stroke();
+  ctx.fillStyle = gold; ctx.beginPath(); ctx.ellipse(-S * 0.52, S * 0.5, S * 0.05, S * 0.018, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = tassel; ctx.beginPath(); ctx.ellipse(-S * 0.52, S * 0.72, S * 0.03, S * 0.05, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Brazo derecho cibernetico con guante naranja
+  ctx.fillStyle = skin; ctx.beginPath(); ctx.ellipse(S * 0.5, hy + S * 0.34, S * 0.13, S * 0.24, -0.1, 0, Math.PI * 2); ctx.fill();
+  // brazalete de rayas
+  ctx.save(); ctx.beginPath(); ctx.ellipse(S * 0.52, hy + S * 0.4, S * 0.13, S * 0.14, 0, 0, Math.PI * 2); ctx.clip(); for (let i = -3; i <= 3; i++) { ctx.fillStyle = i % 2 ? white : black; ctx.fillRect(S * 0.52 + i * S * 0.04, hy + S * 0.24, S * 0.04, S * 0.4); } ctx.restore();
+  // segmentos metalicos
+  ctx.fillStyle = metal; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(S * 0.44, S * 0.2, S * 0.16, S * 0.2, S * 0.02) : ctx.rect(S * 0.44, S * 0.2, S * 0.16, S * 0.2); ctx.fill();
+  ctx.strokeStyle = metalSh; ctx.lineWidth = S * 0.008; ctx.beginPath(); ctx.moveTo(S * 0.44, S * 0.3); ctx.lineTo(S * 0.6, S * 0.3); ctx.stroke();
+  ctx.fillStyle = '#3a3a42'; ctx.beginPath(); ctx.arc(S * 0.49, S * 0.28, S * 0.018, 0, Math.PI * 2); ctx.arc(S * 0.55, S * 0.28, S * 0.018, 0, Math.PI * 2); ctx.fill();
+  // guante naranja
+  ctx.fillStyle = glove; ctx.beginPath(); ctx.ellipse(S * 0.52, S * 0.5, S * 0.1, S * 0.09, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = glove; ctx.lineWidth = S * 0.03; ctx.lineCap = 'round';
+  for (let i = -2; i <= 2; i++) { ctx.beginPath(); ctx.moveTo(S * 0.5 + i * S * 0.03, S * 0.56); ctx.lineTo(S * 0.5 + i * S * 0.03, S * 0.66); ctx.stroke(); }
+  ctx.lineCap = 'butt';
+
+  // Cabeza (calva)
+  ctx.fillStyle = skin; ctx.beginPath(); ctx.ellipse(0, hy - S * 0.02, S * 0.19, S * 0.2, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = skinSh; ctx.lineWidth = 1; ctx.stroke();
+  // marca X en la frente
+  ctx.strokeStyle = skinD; ctx.lineWidth = S * 0.014; ctx.beginPath(); ctx.moveTo(-S * 0.04, hy - S * 0.14); ctx.lineTo(S * 0.04, hy - S * 0.08); ctx.moveTo(S * 0.04, hy - S * 0.14); ctx.lineTo(-S * 0.04, hy - S * 0.08); ctx.stroke();
+  // gafas de sol azules
+  ctx.fillStyle = shade; ctx.beginPath(); ctx.ellipse(-S * 0.07, hy - S * 0.02, S * 0.045, S * 0.03, 0, 0, Math.PI * 2); ctx.ellipse(S * 0.07, hy - S * 0.02, S * 0.045, S * 0.03, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = goldSh; ctx.lineWidth = S * 0.01; ctx.beginPath(); ctx.moveTo(-S * 0.025, hy - S * 0.02); ctx.lineTo(S * 0.025, hy - S * 0.02); ctx.stroke();
+  // cigarro
+  ctx.fillStyle = cigar; ctx.fillRect(-S * 0.01, hy + S * 0.08, S * 0.16, S * 0.03);
+  ctx.fillStyle = '#e05010'; ctx.fillRect(S * 0.15, hy + S * 0.08, S * 0.02, S * 0.03);
+
+  // Bigote bifurcado rubio largo
+  ctx.fillStyle = hair;
+  for (const dir of [-1, 1]) { ctx.beginPath(); ctx.moveTo(0, hy + S * 0.08); ctx.quadraticCurveTo(dir * S * 0.1, hy + S * 0.12, dir * S * 0.06, hy + S * 0.32); ctx.quadraticCurveTo(dir * S * 0.02, hy + S * 0.16, 0, hy + S * 0.12); ctx.closePath(); ctx.fill(); }
+
+  // Rastas rubias con cuentas al lado izquierdo
+  ctx.fillStyle = gold;
+  for (let k = 0; k < 6; k++) { const t = k / 6; const x = -S * 0.14 - t * S * 0.06, y = hy - S * 0.2 + t * S * 0.28; ctx.beginPath(); ctx.arc(x, y, S * 0.035, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = goldSh; ctx.lineWidth = 1; ctx.stroke(); }
+}
+
 function drawBossUlti(b, S) {
   const hair = '#3a7ad0', hairP = '#f0a0a0', hairSh = '#2858a8', capeO = '#2a4ab0', capeIn = '#6a9ad8';
   const skin = '#f0c8a0', skinSh = '#d0a478', blouse = '#f2f0ea', blouseSh = '#d0cec4', bow = '#2a5ad0';
@@ -5116,6 +5199,7 @@ const BOSS_ART = {
   Daifuku: drawBossDaifuku,
   'Page One': drawBossPageOne,
   Ulti: drawBossUlti,
+  Queen: drawBossQueen,
 };
 
 function drawBossUI() {
